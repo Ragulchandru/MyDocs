@@ -1,0 +1,11 @@
+{
+  "appTitle": "MyDocs",
+  "appTagline": "Your important documents, always easy to find.",
+  "welcomeMessage": "Welcome to MyDocs",
+  "welcomeDescription": "Easily organize and access your important documents in one secure, offline place.",
+  "emptyStateText": "No documents available",
+  "navHome": "Home",
+  "navFolders": "Folders",
+  "navRecycleBin": "Recycle Bin",
+  "navSettings": "Settings"
+}

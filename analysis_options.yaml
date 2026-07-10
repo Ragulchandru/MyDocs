@@ -1,0 +1,37 @@
+# analysis_options.yaml
+#
+# This file configures the Dart analyzer and linter for MyDocs.
+# We extend the official Flutter lint rules.
+
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  # Exclude machine-generated files from analysis.
+  # These files are produced by build_runner.
+  exclude:
+    - '**/*.g.dart'
+    - '**/*.freezed.dart'
+
+  errors:
+    # Suppress false positives from code-generation annotations
+    invalid_annotation_target: ignore
+
+linter:
+  rules:
+    # Enforce const constructors wherever possible — improves performance.
+    - prefer_const_constructors
+    - prefer_const_constructors_in_immutables
+    - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
+
+    # Always provide a Key for widgets that extend StatelessWidget/StatefulWidget.
+    - use_key_in_widget_constructors
+
+    # Trailing commas make diffs cleaner and auto-formatting more predictable.
+    - require_trailing_commas
+
+    # Use relative imports within the same package.
+    - prefer_relative_imports
+
+    # Avoid print() in production code — use a logger instead.
+    - avoid_print
