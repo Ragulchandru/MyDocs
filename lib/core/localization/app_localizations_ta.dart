@@ -77,4 +77,42 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get dateYesterday => 'நேற்று';
+
+  @override
+  String get importScan => 'ஆவணத்தை ஸ்கேன் செய்';
+
+  @override
+  String get scanningLabel => 'ஸ்கேன் செய்யப்படுகிறது...';
+
+  @override
+  String get generatingPdfLabel => 'PDF உருவாக்கப்படுகிறது...';
+
+  @override
+  String get savingLabel => 'சேமிக்கப்படுகிறது...';
+
+  @override
+  String get errorScanFailed =>
+      'ஸ்கேன் செயல்பாடு தோல்வியடைந்தது அல்லது ரத்து செய்யப்பட்டது.';
+
+  @override
+  String get errorCameraPermission =>
+      'ஆவணங்களை ஸ்கேன் செய்ய கேமரா அனுமதி தேவை.';
+
+  @override
+  String get saveDialogTitle => 'ஆவணத்தைச் சேமி';
+
+  @override
+  String get saveDialogHint => 'ஆவணத்தின் பெயரை உள்ளிடவும்';
+
+  @override
+  String get saveDialogValidationError => 'ஆவணத்தின் பெயரை உள்ளிடவும்.';
+
+  @override
+  String get saveDialogHintExample => 'உதாரணம்: ஓட்டுநர் உரிமம்';
+
+  @override
+  String get saveButtonLabel => 'சேமி';
+
+  @override
+  String get cancelButton => 'ரத்துசெய்';
 }

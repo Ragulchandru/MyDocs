@@ -223,6 +223,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Yesterday'**
   String get dateYesterday;
+
+  /// No description provided for @importScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Document'**
+  String get importScan;
+
+  /// No description provided for @scanningLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning...'**
+  String get scanningLabel;
+
+  /// No description provided for @generatingPdfLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating PDF...'**
+  String get generatingPdfLabel;
+
+  /// No description provided for @savingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving...'**
+  String get savingLabel;
+
+  /// No description provided for @errorScanFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan operation failed or cancelled.'**
+  String get errorScanFailed;
+
+  /// No description provided for @errorCameraPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera permission is required to scan documents.'**
+  String get errorCameraPermission;
+
+  /// No description provided for @saveDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Document'**
+  String get saveDialogTitle;
+
+  /// No description provided for @saveDialogHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter document name'**
+  String get saveDialogHint;
+
+  /// No description provided for @saveDialogValidationError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a document name.'**
+  String get saveDialogValidationError;
+
+  /// No description provided for @saveDialogHintExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Example: Driving License'**
+  String get saveDialogHintExample;
+
+  /// No description provided for @saveButtonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get saveButtonLabel;
+
+  /// No description provided for @cancelButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancelButton;
 }
 
 class _AppLocalizationsDelegate

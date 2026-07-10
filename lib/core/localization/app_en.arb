@@ -19,5 +19,17 @@
   "errorUserCancelled": "File selection cancelled.",
   "errorPermission": "Storage permission denied.",
   "dateToday": "Today",
-  "dateYesterday": "Yesterday"
+  "dateYesterday": "Yesterday",
+  "importScan": "Scan Document",
+  "scanningLabel": "Scanning...",
+  "generatingPdfLabel": "Generating PDF...",
+  "savingLabel": "Saving...",
+  "errorScanFailed": "Scan operation failed or cancelled.",
+  "errorCameraPermission": "Camera permission is required to scan documents.",
+  "saveDialogTitle": "Save Document",
+  "saveDialogHint": "Enter document name",
+  "saveDialogValidationError": "Please enter a document name.",
+  "saveDialogHintExample": "Example: Driving License",
+  "saveButtonLabel": "Save",
+  "cancelButton": "Cancel"
 }

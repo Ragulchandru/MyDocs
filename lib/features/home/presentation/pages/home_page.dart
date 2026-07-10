@@ -20,6 +20,122 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   bool _isImporting = false;
+  String _loadingText = '';
+
+  /// Shows an M3 outlined TextField dialog to input a sanitized document name.
+  /// Enforces a 100-character limit and disables Save until non-empty input is typed.
+  Future<String?> _showSaveDocumentDialog() {
+    final localizations = AppLocalizations.of(context);
+    final controller = TextEditingController();
+    bool isSaveEnabled = false;
+
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(localizations.saveDialogTitle),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: controller,
+                    maxLength: 100,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      labelText: localizations.saveDialogHint,
+                      helperText: localizations.saveDialogHintExample,
+                      counterText: '', // Hide length counter for simplified UI
+                    ),
+                    onChanged: (text) {
+                      final isValid = text.trim().isNotEmpty;
+                      if (isValid != isSaveEnabled) {
+                        setDialogState(() {
+                          isSaveEnabled = isValid;
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(localizations.cancelButton),
+                ),
+                ElevatedButton(
+                  onPressed: isSaveEnabled
+                      ? () => Navigator.of(context).pop(controller.text)
+                      : null,
+                  child: Text(localizations.saveButtonLabel),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// Triggers edge-detecting camera scan, prompts for name, converts to PDF, and saves.
+  Future<void> _scanDocument() async {
+    if (_isImporting) return;
+
+    final localizations = AppLocalizations.of(context);
+
+    try {
+      final scannerService = ref.read(documentScannerServiceProvider);
+      
+      // 1. Scan image via edge detection and photo enhancement
+      final scannedFile = await scannerService.scanDocument();
+
+      if (scannedFile == null) {
+        _showSnackBar(localizations.errorScanFailed);
+        return;
+      }
+
+      // 2. Ask user for document title
+      final docName = await _showSaveDocumentDialog();
+      if (docName == null) {
+        return; // User cancelled title input
+      }
+
+      // 3. Convert to PDF and save metadata
+      setState(() {
+        _isImporting = true;
+        _loadingText = localizations.generatingPdfLabel;
+      });
+
+      // Quick delay for smoother overlay transition
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      if (!mounted) return;
+      setState(() {
+        _loadingText = localizations.savingLabel;
+      });
+
+      await ref.read(scanDocumentUseCaseProvider).execute(scannedFile.path, docName);
+
+      _showSnackBar(localizations.fileImportSuccess);
+    } catch (e) {
+      final errorStr = e.toString().toLowerCase();
+      if (errorStr.contains('permission') || errorStr.contains('camera')) {
+        _showSnackBar(localizations.errorCameraPermission);
+      } else {
+        _showSnackBar(localizations.errorGeneric(e.toString()));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isImporting = false;
+          _loadingText = '';
+        });
+      }
+    }
+  }
 
   /// Handles picking and importing a file based on [DocumentType].
   Future<void> _importFile(DocumentType type) async {
@@ -144,6 +260,21 @@ class _HomePageState extends ConsumerState<HomePage> {
                   onTap: () {
                     Navigator.of(context).pop();
                     _importFile(DocumentType.image);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.camera_alt_rounded,
+                    color: theme.colorScheme.primary,
+                    size: 28,
+                  ),
+                  title: Text(
+                    localizations.importScan,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _scanDocument();
                   },
                 ),
               ],
@@ -284,7 +415,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     const CircularProgressIndicator(),
                     const SizedBox(height: 16),
                     Text(
-                      localizations.importingLabel,
+                      _loadingText.isNotEmpty ? _loadingText : localizations.importingLabel,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),

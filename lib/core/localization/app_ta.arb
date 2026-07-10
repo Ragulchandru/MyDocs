@@ -19,5 +19,17 @@
   "errorUserCancelled": "கோப்பு தேர்வு ரத்து செய்யப்பட்டது.",
   "errorPermission": "அனுமதி மறுக்கப்பட்டது.",
   "dateToday": "இன்று",
-  "dateYesterday": "நேற்று"
+  "dateYesterday": "நேற்று",
+  "importScan": "ஆவணத்தை ஸ்கேன் செய்",
+  "scanningLabel": "ஸ்கேன் செய்யப்படுகிறது...",
+  "generatingPdfLabel": "PDF உருவாக்கப்படுகிறது...",
+  "savingLabel": "சேமிக்கப்படுகிறது...",
+  "errorScanFailed": "ஸ்கேன் செயல்பாடு தோல்வியடைந்தது அல்லது ரத்து செய்யப்பட்டது.",
+  "errorCameraPermission": "ஆவணங்களை ஸ்கேன் செய்ய கேமரா அனுமதி தேவை.",
+  "saveDialogTitle": "ஆவணத்தைச் சேமி",
+  "saveDialogHint": "ஆவணத்தின் பெயரை உள்ளிடவும்",
+  "saveDialogValidationError": "ஆவணத்தின் பெயரை உள்ளிடவும்.",
+  "saveDialogHintExample": "உதாரணம்: ஓட்டுநர் உரிமம்",
+  "saveButtonLabel": "சேமி",
+  "cancelButton": "ரத்துசெய்"
 }

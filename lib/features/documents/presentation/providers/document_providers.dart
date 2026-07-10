@@ -5,10 +5,13 @@ import 'package:hive/hive.dart';
 import '../../../../core/storage/storage_constants.dart';
 import '../../../../core/storage/storage_strategy.dart';
 import '../../data/repositories/document_repository_impl.dart';
+import '../../data/services/document_scanner_service_impl.dart';
 import '../../domain/models/document.dart';
 import '../../domain/repositories/document_repository.dart';
+import '../../domain/services/document_scanner_service.dart';
 import '../../domain/usecases/get_documents_usecase.dart';
 import '../../domain/usecases/import_document_usecase.dart';
+import '../../domain/usecases/scan_document_usecase.dart';
 
 /// Exposes the document database repository.
 final documentRepositoryProvider = Provider<DocumentRepository>((ref) {
@@ -38,4 +41,16 @@ final getDocumentsUseCaseProvider = Provider<GetDocumentsUseCase>((ref) {
 final documentListProvider = StreamProvider<List<Document>>((ref) {
   final useCase = ref.watch(getDocumentsUseCaseProvider);
   return useCase.execute();
+});
+
+/// Exposes the document scanner service.
+final documentScannerServiceProvider = Provider<DocumentScannerService>((ref) {
+  return DocumentScannerServiceImpl();
+});
+
+/// Exposes the scan document use case.
+final scanDocumentUseCaseProvider = Provider<ScanDocumentUseCase>((ref) {
+  final repository = ref.watch(documentRepositoryProvider);
+  final storageStrategy = ref.watch(storageStrategyProvider);
+  return ScanDocumentUseCase(repository, storageStrategy);
 });

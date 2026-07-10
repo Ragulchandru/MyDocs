@@ -75,4 +75,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dateYesterday => 'Yesterday';
+
+  @override
+  String get importScan => 'Scan Document';
+
+  @override
+  String get scanningLabel => 'Scanning...';
+
+  @override
+  String get generatingPdfLabel => 'Generating PDF...';
+
+  @override
+  String get savingLabel => 'Saving...';
+
+  @override
+  String get errorScanFailed => 'Scan operation failed or cancelled.';
+
+  @override
+  String get errorCameraPermission =>
+      'Camera permission is required to scan documents.';
+
+  @override
+  String get saveDialogTitle => 'Save Document';
+
+  @override
+  String get saveDialogHint => 'Enter document name';
+
+  @override
+  String get saveDialogValidationError => 'Please enter a document name.';
+
+  @override
+  String get saveDialogHintExample => 'Example: Driving License';
+
+  @override
+  String get saveButtonLabel => 'Save';
+
+  @override
+  String get cancelButton => 'Cancel';
 }
