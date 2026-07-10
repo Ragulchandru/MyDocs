@@ -1,7 +1,7 @@
 // lib/core/storage/hive_initializer.dart
 
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:mydocs/core/storage/storage_constants.dart';
+import 'storage_constants.dart';
 
 class HiveInitializer {
   /// Initializes Hive and opens all required boxes for the application.

@@ -1,7 +1,7 @@
 // lib/features/home/presentation/pages/home_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/responsive_scaffold.dart';
 
@@ -49,13 +49,13 @@ class HomePage extends StatelessWidget {
                     Icon(
                       Icons.note_add_rounded,
                       size: 80,
-                      color: theme.colorScheme.onSurface.withOpacity(0.4),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                     ),
                     const SizedBox(height: 16),
                     Text(
                       localizations.emptyStateText,
                       style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                         fontWeight: FontWeight.w500,
                       ),
                     ),

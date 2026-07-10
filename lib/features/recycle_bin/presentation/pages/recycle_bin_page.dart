@@ -1,7 +1,7 @@
 // lib/features/recycle_bin/presentation/pages/recycle_bin_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/responsive_scaffold.dart';
 
