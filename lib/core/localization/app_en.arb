@@ -31,5 +31,34 @@
   "saveDialogValidationError": "Please enter a document name.",
   "saveDialogHintExample": "Example: Driving License",
   "saveButtonLabel": "Save",
-  "cancelButton": "Cancel"
+  "cancelButton": "Cancel",
+  "viewOpenDocument": "Open Document",
+  "errorFileNotFound": "File not found",
+  "errorUnableToOpen": "Unable to open document",
+  "errorUnsupportedFormat": "Unsupported file format.",
+  "loadingText": "Loading...",
+  "pageIndicatorText": "Page {current} of {total}",
+  "@pageIndicatorText": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "btnFitScreen": "Fit Screen",
+  "btnAddPage": "Add Page",
+  "btnFinish": "Finish PDF",
+  "labelScannedPages": "Scanned Pages",
+  "labelPage": "Page {pageNumber}",
+  "@labelPage": {
+    "placeholders": {
+      "pageNumber": {
+        "type": "int"
+      }
+    }
+  },
+  "okButton": "OK"
 }

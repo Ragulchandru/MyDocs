@@ -112,4 +112,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cancelButton => 'Cancel';
+
+  @override
+  String get viewOpenDocument => 'Open Document';
+
+  @override
+  String get errorFileNotFound => 'File not found';
+
+  @override
+  String get errorUnableToOpen => 'Unable to open document';
+
+  @override
+  String get errorUnsupportedFormat => 'Unsupported file format.';
+
+  @override
+  String get loadingText => 'Loading...';
+
+  @override
+  String pageIndicatorText(int current, int total) {
+    return 'Page $current of $total';
+  }
+
+  @override
+  String get btnFitScreen => 'Fit Screen';
+
+  @override
+  String get btnAddPage => 'Add Page';
+
+  @override
+  String get btnFinish => 'Finish PDF';
+
+  @override
+  String get labelScannedPages => 'Scanned Pages';
+
+  @override
+  String labelPage(int pageNumber) {
+    return 'Page $pageNumber';
+  }
+
+  @override
+  String get okButton => 'OK';
 }

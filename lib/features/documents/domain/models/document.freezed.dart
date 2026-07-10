@@ -29,6 +29,7 @@ mixin _$Document {
   int get fileSize => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
+  int get lastViewedPage => throw _privateConstructorUsedError;
 
   /// Serializes this Document to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -54,7 +55,8 @@ abstract class $DocumentCopyWith<$Res> {
       DocumentType fileType,
       int fileSize,
       DateTime createdAt,
-      DateTime updatedAt});
+      DateTime updatedAt,
+      int lastViewedPage});
 }
 
 /// @nodoc
@@ -81,6 +83,7 @@ class _$DocumentCopyWithImpl<$Res, $Val extends Document>
     Object? fileSize = null,
     Object? createdAt = null,
     Object? updatedAt = null,
+    Object? lastViewedPage = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -119,6 +122,10 @@ class _$DocumentCopyWithImpl<$Res, $Val extends Document>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      lastViewedPage: null == lastViewedPage
+          ? _value.lastViewedPage
+          : lastViewedPage // ignore: cast_nullable_to_non_nullable
+              as int,
     ) as $Val);
   }
 }
@@ -140,7 +147,8 @@ abstract class _$$DocumentImplCopyWith<$Res>
       DocumentType fileType,
       int fileSize,
       DateTime createdAt,
-      DateTime updatedAt});
+      DateTime updatedAt,
+      int lastViewedPage});
 }
 
 /// @nodoc
@@ -165,6 +173,7 @@ class __$$DocumentImplCopyWithImpl<$Res>
     Object? fileSize = null,
     Object? createdAt = null,
     Object? updatedAt = null,
+    Object? lastViewedPage = null,
   }) {
     return _then(_$DocumentImpl(
       id: null == id
@@ -203,6 +212,10 @@ class __$$DocumentImplCopyWithImpl<$Res>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      lastViewedPage: null == lastViewedPage
+          ? _value.lastViewedPage
+          : lastViewedPage // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
@@ -219,7 +232,8 @@ class _$DocumentImpl implements _Document {
       required this.fileType,
       required this.fileSize,
       required this.createdAt,
-      required this.updatedAt});
+      required this.updatedAt,
+      this.lastViewedPage = 1});
 
   factory _$DocumentImpl.fromJson(Map<String, dynamic> json) =>
       _$$DocumentImplFromJson(json);
@@ -242,10 +256,13 @@ class _$DocumentImpl implements _Document {
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
+  @override
+  @JsonKey()
+  final int lastViewedPage;
 
   @override
   String toString() {
-    return 'Document(id: $id, name: $name, fileName: $fileName, extension: $extension, filePath: $filePath, fileType: $fileType, fileSize: $fileSize, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Document(id: $id, name: $name, fileName: $fileName, extension: $extension, filePath: $filePath, fileType: $fileType, fileSize: $fileSize, createdAt: $createdAt, updatedAt: $updatedAt, lastViewedPage: $lastViewedPage)';
   }
 
   @override
@@ -268,13 +285,15 @@ class _$DocumentImpl implements _Document {
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt));
+                other.updatedAt == updatedAt) &&
+            (identical(other.lastViewedPage, lastViewedPage) ||
+                other.lastViewedPage == lastViewedPage));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, name, fileName, extension,
-      filePath, fileType, fileSize, createdAt, updatedAt);
+      filePath, fileType, fileSize, createdAt, updatedAt, lastViewedPage);
 
   /// Create a copy of Document
   /// with the given fields replaced by the non-null parameter values.
@@ -302,7 +321,8 @@ abstract class _Document implements Document {
       required final DocumentType fileType,
       required final int fileSize,
       required final DateTime createdAt,
-      required final DateTime updatedAt}) = _$DocumentImpl;
+      required final DateTime updatedAt,
+      final int lastViewedPage}) = _$DocumentImpl;
 
   factory _Document.fromJson(Map<String, dynamic> json) =
       _$DocumentImpl.fromJson;
@@ -325,6 +345,8 @@ abstract class _Document implements Document {
   DateTime get createdAt;
   @override
   DateTime get updatedAt;
+  @override
+  int get lastViewedPage;
 
   /// Create a copy of Document
   /// with the given fields replaced by the non-null parameter values.

@@ -23,6 +23,7 @@ class Document with _$Document {
     required int fileSize,
     required DateTime createdAt,
     required DateTime updatedAt,
+    @Default(1) int lastViewedPage,
   }) = _Document;
 
   factory Document.fromJson(Map<String, dynamic> json) => _$DocumentFromJson(json);

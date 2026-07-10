@@ -17,6 +17,7 @@ _$DocumentImpl _$$DocumentImplFromJson(Map<String, dynamic> json) =>
       fileSize: (json['fileSize'] as num).toInt(),
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
+      lastViewedPage: (json['lastViewedPage'] as num?)?.toInt() ?? 1,
     );
 
 Map<String, dynamic> _$$DocumentImplToJson(_$DocumentImpl instance) =>
@@ -30,6 +31,7 @@ Map<String, dynamic> _$$DocumentImplToJson(_$DocumentImpl instance) =>
       'fileSize': instance.fileSize,
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
+      'lastViewedPage': instance.lastViewedPage,
     };
 
 const _$DocumentTypeEnumMap = {

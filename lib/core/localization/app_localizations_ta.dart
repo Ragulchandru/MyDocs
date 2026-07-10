@@ -115,4 +115,44 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get cancelButton => 'ரத்துசெய்';
+
+  @override
+  String get viewOpenDocument => 'ஆவணத்தைத் திற';
+
+  @override
+  String get errorFileNotFound => 'கோப்பு கண்டறியப்படவில்லை';
+
+  @override
+  String get errorUnableToOpen => 'ஆவணத்தைத் திறக்க முடியவில்லை';
+
+  @override
+  String get errorUnsupportedFormat => 'ஆதரிக்கப்படாத கோப்பு வடிவம்.';
+
+  @override
+  String get loadingText => 'ஏற்றப்படுகிறது...';
+
+  @override
+  String pageIndicatorText(int current, int total) {
+    return 'பக்கம் $total-இல் $current';
+  }
+
+  @override
+  String get btnFitScreen => 'திரைக்குப் பொருத்து';
+
+  @override
+  String get btnAddPage => 'பக்கத்தைச் சேர்';
+
+  @override
+  String get btnFinish => 'PDF-ஐ முடி';
+
+  @override
+  String get labelScannedPages => 'ஸ்கேன் செய்த பக்கங்கள்';
+
+  @override
+  String labelPage(int pageNumber) {
+    return 'பக்கம் $pageNumber';
+  }
+
+  @override
+  String get okButton => 'சரி';
 }

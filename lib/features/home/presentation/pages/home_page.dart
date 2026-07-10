@@ -3,6 +3,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/formatters.dart';
@@ -20,67 +21,8 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   bool _isImporting = false;
-  String _loadingText = '';
 
-  /// Shows an M3 outlined TextField dialog to input a sanitized document name.
-  /// Enforces a 100-character limit and disables Save until non-empty input is typed.
-  Future<String?> _showSaveDocumentDialog() {
-    final localizations = AppLocalizations.of(context);
-    final controller = TextEditingController();
-    bool isSaveEnabled = false;
-
-    return showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: Text(localizations.saveDialogTitle),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: controller,
-                    maxLength: 100,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      border: const OutlineInputBorder(),
-                      labelText: localizations.saveDialogHint,
-                      helperText: localizations.saveDialogHintExample,
-                      counterText: '', // Hide length counter for simplified UI
-                    ),
-                    onChanged: (text) {
-                      final isValid = text.trim().isNotEmpty;
-                      if (isValid != isSaveEnabled) {
-                        setDialogState(() {
-                          isSaveEnabled = isValid;
-                        });
-                      }
-                    },
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(localizations.cancelButton),
-                ),
-                ElevatedButton(
-                  onPressed: isSaveEnabled
-                      ? () => Navigator.of(context).pop(controller.text)
-                      : null,
-                  child: Text(localizations.saveButtonLabel),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  /// Triggers edge-detecting camera scan, prompts for name, converts to PDF, and saves.
+  /// Triggers edge-detecting camera scan, and if successful, launches the multi-page session.
   Future<void> _scanDocument() async {
     if (_isImporting) return;
 
@@ -97,42 +39,15 @@ class _HomePageState extends ConsumerState<HomePage> {
         return;
       }
 
-      // 2. Ask user for document title
-      final docName = await _showSaveDocumentDialog();
-      if (docName == null) {
-        return; // User cancelled title input
-      }
-
-      // 3. Convert to PDF and save metadata
-      setState(() {
-        _isImporting = true;
-        _loadingText = localizations.generatingPdfLabel;
-      });
-
-      // Quick delay for smoother overlay transition
-      await Future.delayed(const Duration(milliseconds: 300));
-
       if (!mounted) return;
-      setState(() {
-        _loadingText = localizations.savingLabel;
-      });
-
-      await ref.read(scanDocumentUseCaseProvider).execute(scannedFile.path, docName);
-
-      _showSnackBar(localizations.fileImportSuccess);
+      // 2. Navigate to ScanSessionPage, passing the first page's path as extra
+      context.push(AppRouter.scanSessionPath, extra: scannedFile.path);
     } catch (e) {
       final errorStr = e.toString().toLowerCase();
       if (errorStr.contains('permission') || errorStr.contains('camera')) {
         _showSnackBar(localizations.errorCameraPermission);
       } else {
         _showSnackBar(localizations.errorGeneric(e.toString()));
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isImporting = false;
-          _loadingText = '';
-        });
       }
     }
   }
@@ -345,19 +260,22 @@ class _HomePageState extends ConsumerState<HomePage> {
                       ),
                       child: ListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                        leading: Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            doc.fileType == DocumentType.pdf
-                                ? Icons.picture_as_pdf_rounded
-                                : Icons.image_rounded,
-                            color: theme.colorScheme.onPrimaryContainer,
-                            size: 28,
+                        leading: Hero(
+                          tag: doc.id,
+                          child: Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              doc.fileType == DocumentType.pdf
+                                  ? Icons.picture_as_pdf_rounded
+                                  : Icons.image_rounded,
+                              color: theme.colorScheme.onPrimaryContainer,
+                              size: 28,
+                            ),
                           ),
                         ),
                         title: Text(
@@ -375,7 +293,16 @@ class _HomePageState extends ConsumerState<HomePage> {
                           ),
                         ),
                         onTap: () {
-                          // View functionality will be implemented in later phases
+                          final extra = {
+                            'documentId': doc.id,
+                            'filePath': doc.filePath,
+                            'title': doc.name,
+                          };
+                          if (doc.fileType == DocumentType.pdf) {
+                            context.push(AppRouter.pdfViewerPath, extra: extra);
+                          } else if (doc.fileType == DocumentType.image) {
+                            context.push(AppRouter.imageViewerPath, extra: extra);
+                          }
                         },
                       ),
                     ),
@@ -415,7 +342,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     const CircularProgressIndicator(),
                     const SizedBox(height: 16),
                     Text(
-                      _loadingText.isNotEmpty ? _loadingText : localizations.importingLabel,
+                      localizations.importingLabel,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),

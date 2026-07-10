@@ -69,6 +69,7 @@ class ImportDocumentUseCase {
       fileSize: size,
       createdAt: now,
       updatedAt: now,
+      lastViewedPage: 1,
     );
 
     // Persist document metadata in database

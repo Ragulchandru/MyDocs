@@ -295,6 +295,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancel'**
   String get cancelButton;
+
+  /// No description provided for @viewOpenDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Document'**
+  String get viewOpenDocument;
+
+  /// No description provided for @errorFileNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'File not found'**
+  String get errorFileNotFound;
+
+  /// No description provided for @errorUnableToOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to open document'**
+  String get errorUnableToOpen;
+
+  /// No description provided for @errorUnsupportedFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsupported file format.'**
+  String get errorUnsupportedFormat;
+
+  /// No description provided for @loadingText.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get loadingText;
+
+  /// No description provided for @pageIndicatorText.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {current} of {total}'**
+  String pageIndicatorText(int current, int total);
+
+  /// No description provided for @btnFitScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Fit Screen'**
+  String get btnFitScreen;
+
+  /// No description provided for @btnAddPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Page'**
+  String get btnAddPage;
+
+  /// No description provided for @btnFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish PDF'**
+  String get btnFinish;
+
+  /// No description provided for @labelScannedPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanned Pages'**
+  String get labelScannedPages;
+
+  /// No description provided for @labelPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {pageNumber}'**
+  String labelPage(int pageNumber);
+
+  /// No description provided for @okButton.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get okButton;
 }
 
 class _AppLocalizationsDelegate

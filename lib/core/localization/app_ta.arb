@@ -31,5 +31,34 @@
   "saveDialogValidationError": "ஆவணத்தின் பெயரை உள்ளிடவும்.",
   "saveDialogHintExample": "உதாரணம்: ஓட்டுநர் உரிமம்",
   "saveButtonLabel": "சேமி",
-  "cancelButton": "ரத்துசெய்"
+  "cancelButton": "ரத்துசெய்",
+  "viewOpenDocument": "ஆவணத்தைத் திற",
+  "errorFileNotFound": "கோப்பு கண்டறியப்படவில்லை",
+  "errorUnableToOpen": "ஆவணத்தைத் திறக்க முடியவில்லை",
+  "errorUnsupportedFormat": "ஆதரிக்கப்படாத கோப்பு வடிவம்.",
+  "loadingText": "ஏற்றப்படுகிறது...",
+  "pageIndicatorText": "பக்கம் {total}-இல் {current}",
+  "@pageIndicatorText": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "btnFitScreen": "திரைக்குப் பொருத்து",
+  "btnAddPage": "பக்கத்தைச் சேர்",
+  "btnFinish": "PDF-ஐ முடி",
+  "labelScannedPages": "ஸ்கேன் செய்த பக்கங்கள்",
+  "labelPage": "பக்கம் {pageNumber}",
+  "@labelPage": {
+    "placeholders": {
+      "pageNumber": {
+        "type": "int"
+      }
+    }
+  },
+  "okButton": "சரி"
 }
