@@ -23,7 +23,8 @@ class AppLocalizationsTa extends AppLocalizations {
       'உங்கள் முக்கியமான ஆவணங்களை ஒரே பாதுகாப்பான, ஆஃப்லைன் இடத்தில் எளிதாக ஒழுங்கமைத்து அணுகலாம்.';
 
   @override
-  String get emptyStateText => 'ஆவணங்கள் எதுவும் இல்லை';
+  String get emptyStateText =>
+      'ஆவணங்கள் எதுவும் இல்லை\nஉங்கள் முதல் ஆவணத்தைச் சேர்க்க + பொத்தானைத் தட்டவும்.';
 
   @override
   String get navHome => 'முகப்பு';
@@ -36,4 +37,44 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get navSettings => 'அமைப்புகள்';
+
+  @override
+  String get importSheetTitle => 'ஆவணத்தைச் சேர்';
+
+  @override
+  String get importPdf => 'PDF-ஐ இறக்குமதி செய்';
+
+  @override
+  String get importImage => 'படத்தை இறக்குமதி செய்';
+
+  @override
+  String get importingLabel => 'இறக்குமதி செய்யப்படுகிறது...';
+
+  @override
+  String get unsupportedFileTypeError =>
+      'ஆதரிக்கப்படாத கோப்பு வகை தேர்ந்தெடுக்கப்பட்டது.';
+
+  @override
+  String get mimeMismatchError =>
+      'கோப்பு வடிவமைப்பு சரிபார்ப்பு தோல்வியுற்றது.';
+
+  @override
+  String get fileImportSuccess => 'ஆவணம் வெற்றிகரமாக இறக்குமதி செய்யப்பட்டது.';
+
+  @override
+  String errorGeneric(Object error) {
+    return 'பிழை ஏற்பட்டது: $error';
+  }
+
+  @override
+  String get errorUserCancelled => 'கோப்பு தேர்வு ரத்து செய்யப்பட்டது.';
+
+  @override
+  String get errorPermission => 'அனுமதி மறுக்கப்பட்டது.';
+
+  @override
+  String get dateToday => 'இன்று';
+
+  @override
+  String get dateYesterday => 'நேற்று';
 }

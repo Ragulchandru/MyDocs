@@ -1,7 +1,9 @@
 // lib/core/storage/storage_strategy.dart
 
 import 'dart:io';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 
 /// Defines the strategy for local file storage in MyDocs.
 /// 
@@ -14,28 +16,31 @@ abstract class StorageStrategy {
   /// Gets the directory where private documents are copied and stored.
   Future<Directory> getDocumentStorageDirectory();
 
-  /// Copies a file from its original location (external or temporary) to the 
-  /// application's private storage directory. Returns the path of the newly copied file.
+  /// Copies a file from its original location to the application's private 
+  /// documents directory using a generated UUID filename, preserving the original extension.
   Future<String> copyToPrivateStorage(String sourcePath, String filename);
 
   /// Deletes a file from the application's private storage directory.
   Future<void> deleteFromPrivateStorage(String filePath);
 }
 
-/// Concrete implementation of [StorageStrategy] using path_provider.
+/// Concrete implementation of [StorageStrategy] using path_provider and absolute paths.
 class LocalStorageStrategy implements StorageStrategy {
-  static const String _documentFolderName = 'documents';
+  static const String _appFolderName = 'MyDocs';
+  static const String _documentsFolderName = 'documents';
+  final Uuid _uuid = const Uuid();
 
   @override
   Future<Directory> getDocumentStorageDirectory() async {
-    final appDir = await getApplicationDocumentsDirectory();
-    final documentDir = Directory('${appDir.path}/$_documentFolderName');
+    // Obtain absolute documents directory on the system
+    final appDocDir = await getApplicationDocumentsDirectory();
+    final targetDir = Directory(p.join(appDocDir.path, _appFolderName, _documentsFolderName));
     
-    if (!await documentDir.exists()) {
-      await documentDir.create(recursive: true);
+    if (!await targetDir.exists()) {
+      await targetDir.create(recursive: true);
     }
     
-    return documentDir;
+    return targetDir;
   }
 
   @override
@@ -46,10 +51,18 @@ class LocalStorageStrategy implements StorageStrategy {
     }
 
     final targetDirectory = await getDocumentStorageDirectory();
-    // Use unique timestamp prefix to avoid name collisions
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final targetPath = '${targetDirectory.path}/${timestamp}_$filename';
+    final extension = p.extension(filename).toLowerCase();
+    final uniqueId = _uuid.v4();
+    final targetFilename = '$uniqueId$extension';
+    final targetPath = p.join(targetDirectory.path, targetFilename);
     
+    // Safety check: ensure file doesn't exist (extremely low probability of UUID clash)
+    final targetFile = File(targetPath);
+    if (await targetFile.exists()) {
+      throw FileSystemException('Target file already exists', targetPath);
+    }
+
+    // Copy the file offline
     final copiedFile = await sourceFile.copy(targetPath);
     return copiedFile.path;
   }

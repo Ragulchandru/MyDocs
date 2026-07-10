@@ -22,7 +22,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Easily organize and access your important documents in one secure, offline place.';
 
   @override
-  String get emptyStateText => 'No documents available';
+  String get emptyStateText =>
+      'No documents available\nTap the + button to add your first document.';
 
   @override
   String get navHome => 'Home';
@@ -35,4 +36,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navSettings => 'Settings';
+
+  @override
+  String get importSheetTitle => 'Add Document';
+
+  @override
+  String get importPdf => 'Import PDF';
+
+  @override
+  String get importImage => 'Import Image';
+
+  @override
+  String get importingLabel => 'Importing...';
+
+  @override
+  String get unsupportedFileTypeError => 'Unsupported file type selected.';
+
+  @override
+  String get mimeMismatchError =>
+      'File format verification failed (MIME type mismatch).';
+
+  @override
+  String get fileImportSuccess => 'Document imported successfully.';
+
+  @override
+  String errorGeneric(Object error) {
+    return 'An error occurred: $error';
+  }
+
+  @override
+  String get errorUserCancelled => 'File selection cancelled.';
+
+  @override
+  String get errorPermission => 'Storage permission denied.';
+
+  @override
+  String get dateToday => 'Today';
+
+  @override
+  String get dateYesterday => 'Yesterday';
 }

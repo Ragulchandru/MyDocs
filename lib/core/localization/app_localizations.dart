@@ -125,7 +125,7 @@ abstract class AppLocalizations {
   /// No description provided for @emptyStateText.
   ///
   /// In en, this message translates to:
-  /// **'No documents available'**
+  /// **'No documents available\nTap the + button to add your first document.'**
   String get emptyStateText;
 
   /// No description provided for @navHome.
@@ -151,6 +151,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get navSettings;
+
+  /// No description provided for @importSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Document'**
+  String get importSheetTitle;
+
+  /// No description provided for @importPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Import PDF'**
+  String get importPdf;
+
+  /// No description provided for @importImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Image'**
+  String get importImage;
+
+  /// No description provided for @importingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing...'**
+  String get importingLabel;
+
+  /// No description provided for @unsupportedFileTypeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsupported file type selected.'**
+  String get unsupportedFileTypeError;
+
+  /// No description provided for @mimeMismatchError.
+  ///
+  /// In en, this message translates to:
+  /// **'File format verification failed (MIME type mismatch).'**
+  String get mimeMismatchError;
+
+  /// No description provided for @fileImportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Document imported successfully.'**
+  String get fileImportSuccess;
+
+  /// No description provided for @errorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred: {error}'**
+  String errorGeneric(Object error);
+
+  /// No description provided for @errorUserCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'File selection cancelled.'**
+  String get errorUserCancelled;
+
+  /// No description provided for @errorPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage permission denied.'**
+  String get errorPermission;
+
+  /// No description provided for @dateToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get dateToday;
+
+  /// No description provided for @dateYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get dateYesterday;
 }
 
 class _AppLocalizationsDelegate

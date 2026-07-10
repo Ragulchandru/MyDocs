@@ -3,9 +3,21 @@
   "appTagline": "Your important documents, always easy to find.",
   "welcomeMessage": "Welcome to MyDocs",
   "welcomeDescription": "Easily organize and access your important documents in one secure, offline place.",
-  "emptyStateText": "No documents available",
+  "emptyStateText": "No documents available\nTap the + button to add your first document.",
   "navHome": "Home",
   "navFolders": "Folders",
   "navRecycleBin": "Recycle Bin",
-  "navSettings": "Settings"
+  "navSettings": "Settings",
+  "importSheetTitle": "Add Document",
+  "importPdf": "Import PDF",
+  "importImage": "Import Image",
+  "importingLabel": "Importing...",
+  "unsupportedFileTypeError": "Unsupported file type selected.",
+  "mimeMismatchError": "File format verification failed (MIME type mismatch).",
+  "fileImportSuccess": "Document imported successfully.",
+  "errorGeneric": "An error occurred: {error}",
+  "errorUserCancelled": "File selection cancelled.",
+  "errorPermission": "Storage permission denied.",
+  "dateToday": "Today",
+  "dateYesterday": "Yesterday"
 }
