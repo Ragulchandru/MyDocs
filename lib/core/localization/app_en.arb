@@ -122,5 +122,21 @@
       }
     }
   },
-  "importAllFailed": "Unable to import the selected documents."
+  "importAllFailed": "Unable to import the selected documents.",
+  "cameraPermissionTitle": "Camera Access Required",
+  "cameraPermissionMessage": "MyDocs needs camera access to scan documents.",
+  "cameraPermissionDenied": "Camera permission is required to scan documents.",
+  "cameraPermissionPermanentlyDenied": "Camera access is disabled. Enable it in App Settings to scan documents.",
+  "openSettings": "Open Settings",
+  "cancel": "Cancel",
+  "scannerUnavailable": "Document scanning is unavailable on this device.",
+  "scannerGooglePlayServicesError": "Google Play Services is unavailable or outdated. Please update it to use the scanner.",
+  "scannerUnexpectedError": "An unexpected scanner error occurred: {message}",
+  "@scannerUnexpectedError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  }
 }

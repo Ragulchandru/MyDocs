@@ -1,6 +1,6 @@
-// lib/features/documents/data/services/document_scanner_service_impl.dart
-
 import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
 import '../../domain/services/document_scanner_service.dart';
 
@@ -8,7 +8,7 @@ import '../../domain/services/document_scanner_service.dart';
 /// `google_mlkit_document_scanner` package.
 class DocumentScannerServiceImpl implements DocumentScannerService {
   @override
-  Future<File?> scanDocument() async {
+  Future<ScannerResult> scanDocument() async {
     // Instantiate document scanner options matching the exact API of version 0.4.1
     final scanner = DocumentScanner(
       options: DocumentScannerOptions(
@@ -19,17 +19,69 @@ class DocumentScannerServiceImpl implements DocumentScannerService {
       ),
     );
 
+    if (kDebugMode) {
+      debugPrint('[Scanner] Launching Google ML Kit scanner');
+    }
+
     try {
       final DocumentScanningResult result = await scanner.scanDocument();
       
       final images = result.images;
       if (images == null || images.isEmpty) {
-        return null; // Cancelled, empty or failed
+        if (kDebugMode) {
+          debugPrint('[Scanner] Scanner returned successfully but images list was empty');
+        }
+        return ScannerResult(
+          status: ScannerStatus.failed,
+          errorMessage: 'No scanned pages were returned.',
+        );
       }
 
-      return File(images.first);
-    } catch (_) {
-      return null;
+      if (kDebugMode) {
+        debugPrint('[Scanner] Scanner returned successfully with ${images.length} images');
+      }
+
+      return ScannerResult(
+        status: ScannerStatus.success,
+        file: File(images.first),
+      );
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        debugPrint('[Scanner] PlatformException code: ${e.code}');
+        debugPrint('[Scanner] PlatformException message: ${e.message}');
+        debugPrint('[Scanner] PlatformException details: ${e.details}');
+      }
+
+      final String code = e.code;
+      final String msg = e.message?.toLowerCase() ?? '';
+
+      // Check if user cancelled
+      if (code == '2' || code == '2002' || msg.contains('cancel') || msg.contains('user cancelled')) {
+        return ScannerResult(status: ScannerStatus.cancelled);
+      }
+
+      // Check if it is a Google Play Services/ML Kit download or availability failure
+      if (msg.contains('play services') || msg.contains('unavailable') || msg.contains('waiting for') || msg.contains('download')) {
+        return ScannerResult(
+          status: ScannerStatus.unavailable,
+          errorMessage: e.message,
+          errorCode: e.code,
+        );
+      }
+
+      return ScannerResult(
+        status: ScannerStatus.failed,
+        errorMessage: e.message,
+        errorCode: e.code,
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[Scanner] Unexpected error: $e');
+      }
+      return ScannerResult(
+        status: ScannerStatus.failed,
+        errorMessage: e.toString(),
+      );
     } finally {
       // Clean up native resources immediately to prevent memory leaks
       scanner.close();

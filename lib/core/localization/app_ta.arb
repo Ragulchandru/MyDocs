@@ -122,5 +122,21 @@
       }
     }
   },
-  "importAllFailed": "தேர்ந்தெடுக்கப்பட்ட ஆவணங்களை இறக்குமதி செய்ய முடியவில்லை."
+  "importAllFailed": "தேர்ந்தெடுக்கப்பட்ட ஆவணங்களை இறக்குமதி செய்ய முடியவில்லை.",
+  "cameraPermissionTitle": "கேமரா அணுகல் தேவை",
+  "cameraPermissionMessage": "ஆவணங்களை ஸ்கேன் செய்ய MyDocs-க்கு கேமரா அணுகல் தேவை.",
+  "cameraPermissionDenied": "ஆவணங்களை ஸ்கேன் செய்ய கேமரா அனுமதி தேவை.",
+  "cameraPermissionPermanentlyDenied": "கேமரா அணுகல் முடக்கப்பட்டுள்ளது. ஆவணங்களை ஸ்கேன் செய்ய பயன்பாட்டு அமைப்புகளில் அதை இயக்கவும்.",
+  "openSettings": "அமைப்புகளைத் திறக்கவும்",
+  "cancel": "ரத்துசெய்",
+  "scannerUnavailable": "இந்த சாதனத்தில் ஆவண ஸ்கேனிங் கிடைக்கவில்லை.",
+  "scannerGooglePlayServicesError": "கூகிள் பிளே சேவைகள் கிடைக்கவில்லை அல்லது காலாவதியானது. ஸ்கேனரைப் பயன்படுத்த அதைப் புதுப்பிக்கவும்.",
+  "scannerUnexpectedError": "எதிர்பாராத ஸ்கேனர் பிழை ஏற்பட்டது: {message}",
+  "@scannerUnexpectedError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  }
 }

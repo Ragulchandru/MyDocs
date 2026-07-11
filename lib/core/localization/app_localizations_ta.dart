@@ -242,4 +242,38 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get importAllFailed =>
       'தேர்ந்தெடுக்கப்பட்ட ஆவணங்களை இறக்குமதி செய்ய முடியவில்லை.';
+
+  @override
+  String get cameraPermissionTitle => 'கேமரா அணுகல் தேவை';
+
+  @override
+  String get cameraPermissionMessage =>
+      'ஆவணங்களை ஸ்கேன் செய்ய MyDocs-க்கு கேமரா அணுகல் தேவை.';
+
+  @override
+  String get cameraPermissionDenied =>
+      'ஆவணங்களை ஸ்கேன் செய்ய கேமரா அனுமதி தேவை.';
+
+  @override
+  String get cameraPermissionPermanentlyDenied =>
+      'கேமரா அணுகல் முடக்கப்பட்டுள்ளது. ஆவணங்களை ஸ்கேன் செய்ய பயன்பாட்டு அமைப்புகளில் அதை இயக்கவும்.';
+
+  @override
+  String get openSettings => 'அமைப்புகளைத் திறக்கவும்';
+
+  @override
+  String get cancel => 'ரத்துசெய்';
+
+  @override
+  String get scannerUnavailable =>
+      'இந்த சாதனத்தில் ஆவண ஸ்கேனிங் கிடைக்கவில்லை.';
+
+  @override
+  String get scannerGooglePlayServicesError =>
+      'கூகிள் பிளே சேவைகள் கிடைக்கவில்லை அல்லது காலாவதியானது. ஸ்கேனரைப் பயன்படுத்த அதைப் புதுப்பிக்கவும்.';
+
+  @override
+  String scannerUnexpectedError(String message) {
+    return 'எதிர்பாராத ஸ்கேனர் பிழை ஏற்பட்டது: $message';
+  }
 }

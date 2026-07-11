@@ -17,6 +17,9 @@ import '../../../../features/documents/presentation/widgets/rename_document_dial
 import '../../../../features/documents/presentation/widgets/document_info_bottom_sheet.dart';
 import '../../../../features/documents/presentation/widgets/document_thumbnail.dart';
 import '../../../../features/settings/presentation/providers/settings_providers.dart';
+import '../../../../core/utils/permissions.dart';
+import '../../../../features/documents/presentation/utils/scanner_error_handler.dart';
+import '../../../../features/documents/domain/services/document_scanner_service.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -74,6 +77,15 @@ class _HomePageState extends ConsumerState<HomePage> {
     if (importState.isImporting || _isScanning) return;
     final localizations = AppLocalizations.of(context);
 
+    // Request camera permission using Helper (decoupled from context)
+    final permissionResult = await CameraPermissionHelper.checkAndRequestCameraPermission();
+    if (permissionResult != CameraPermissionResult.granted) {
+      if (mounted) {
+        await ScannerErrorHandler.handlePermissionResult(context, permissionResult, localizations);
+      }
+      return;
+    }
+
     setState(() => _isScanning = true);
 
     Stopwatch? stopwatch;
@@ -86,37 +98,52 @@ class _HomePageState extends ConsumerState<HomePage> {
       final scannerService = ref.read(documentScannerServiceProvider);
       if (kDebugMode) debugPrint('[ScanTiming] Scanner launch initiated');
 
-      final scannedFile = await scannerService.scanDocument();
+      // Dismiss UI loading state right before native scanner takes over (Priority 9)
+      setState(() => _isScanning = false);
+
+      final result = await scannerService.scanDocument();
 
       if (kDebugMode && stopwatch != null) {
         debugPrint('[ScanTiming] Google ML Kit native scanner result returned to Flutter: ${stopwatch.elapsedMilliseconds} ms');
       }
 
-      if (scannedFile == null) {
-        setState(() => _isScanning = false);
-        _showSnackBar(localizations.errorScanFailed);
-        return;
-      }
+      if (result.status == ScannerStatus.success && result.file != null) {
+        final scannedFile = result.file!;
+        if (kDebugMode && stopwatch != null) {
+          stopwatch.reset();
+        }
 
-      if (kDebugMode && stopwatch != null) {
-        stopwatch.reset();
-      }
+        final fileExists = await scannedFile.exists();
+        final fileLength = fileExists ? await scannedFile.length() : 0;
 
-      final fileExists = await scannedFile.exists();
-      final fileLength = fileExists ? await scannedFile.length() : 0;
+        if (kDebugMode && stopwatch != null) {
+          debugPrint('[ScanTiming] File existence/readability validation: ${stopwatch.elapsedMilliseconds} ms (size: $fileLength bytes)');
+        }
 
-      if (kDebugMode && stopwatch != null) {
-        debugPrint('[ScanTiming] File existence/readability validation: ${stopwatch.elapsedMilliseconds} ms (size: $fileLength bytes)');
-      }
-
-      if (!mounted) return;
-      context.push(AppRouter.scanSessionPath, extra: scannedFile.path);
-    } catch (e) {
-      final errorStr = e.toString().toLowerCase();
-      if (errorStr.contains('permission') || errorStr.contains('camera')) {
-        _showSnackBar(localizations.errorCameraPermission);
+        if (fileExists && fileLength > 0) {
+          if (!mounted) return;
+          context.push(
+            AppRouter.scanSessionPath,
+            extra: scannedFile.path,
+          );
+        } else {
+          _showSnackBar(localizations.errorScanFailed);
+        }
       } else {
-        _showSnackBar(localizations.errorGeneric(e.toString()));
+        if (mounted) {
+          ScannerErrorHandler.handleScannerResult(context, result, localizations);
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[ScanTiming] Error during scan document: $e');
+      }
+      if (mounted) {
+        final fallbackResult = ScannerResult(
+          status: ScannerStatus.failed,
+          errorMessage: e.toString(),
+        );
+        ScannerErrorHandler.handleScannerResult(context, fallbackResult, localizations);
       }
     } finally {
       if (mounted) {

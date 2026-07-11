@@ -236,4 +236,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importAllFailed => 'Unable to import the selected documents.';
+
+  @override
+  String get cameraPermissionTitle => 'Camera Access Required';
+
+  @override
+  String get cameraPermissionMessage =>
+      'MyDocs needs camera access to scan documents.';
+
+  @override
+  String get cameraPermissionDenied =>
+      'Camera permission is required to scan documents.';
+
+  @override
+  String get cameraPermissionPermanentlyDenied =>
+      'Camera access is disabled. Enable it in App Settings to scan documents.';
+
+  @override
+  String get openSettings => 'Open Settings';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get scannerUnavailable =>
+      'Document scanning is unavailable on this device.';
+
+  @override
+  String get scannerGooglePlayServicesError =>
+      'Google Play Services is unavailable or outdated. Please update it to use the scanner.';
+
+  @override
+  String scannerUnexpectedError(String message) {
+    return 'An unexpected scanner error occurred: $message';
+  }
 }

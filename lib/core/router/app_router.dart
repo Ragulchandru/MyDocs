@@ -1,5 +1,4 @@
-// lib/core/router/app_router.dart
-
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/folders/presentation/pages/folders_page.dart';
@@ -18,56 +17,121 @@ class AppRouter {
   static const String imageViewerPath = '/image-viewer';
   static const String scanSessionPath = '/scan-session';
 
+  /// Reusable transition builder that performs a lightweight fade + subtle horizontal slide
+  static CustomTransitionPage<T> _buildSmoothTransitionPage<T>({
+    required GoRouterState state,
+    required Widget child,
+  }) {
+    return CustomTransitionPage<T>(
+      key: state.pageKey,
+      child: child,
+      transitionDuration: const Duration(milliseconds: 220),
+      reverseTransitionDuration: const Duration(milliseconds: 200),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final slideAnimation = Tween<Offset>(
+          begin: const Offset(0.04, 0.0), // Very small horizontal slide
+          end: Offset.zero,
+        ).animate(
+          CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+            reverseCurve: Curves.easeInCubic,
+          ),
+        );
+
+        final fadeAnimation = Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).animate(
+          CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOut,
+            reverseCurve: Curves.easeIn,
+          ),
+        );
+
+        return SlideTransition(
+          position: slideAnimation,
+          child: FadeTransition(
+            opacity: fadeAnimation,
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
   static final GoRouter router = GoRouter(
     initialLocation: homePath,
     routes: [
       GoRoute(
         path: homePath,
-        builder: (context, state) => const HomePage(),
+        pageBuilder: (context, state) => _buildSmoothTransitionPage(
+          state: state,
+          child: const HomePage(),
+        ),
       ),
       GoRoute(
         path: foldersPath,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           final folderType = extra?['folderType'] as String?;
-          return FoldersPage(initialFolderType: folderType);
+          return _buildSmoothTransitionPage(
+            state: state,
+            child: FoldersPage(initialFolderType: folderType),
+          );
         },
       ),
       GoRoute(
         path: recycleBinPath,
-        builder: (context, state) => const RecycleBinPage(),
+        pageBuilder: (context, state) => _buildSmoothTransitionPage(
+          state: state,
+          child: const RecycleBinPage(),
+        ),
       ),
       GoRoute(
         path: settingsPath,
-        builder: (context, state) => const SettingsPage(),
+        pageBuilder: (context, state) => _buildSmoothTransitionPage(
+          state: state,
+          child: const SettingsPage(),
+        ),
       ),
       GoRoute(
         path: pdfViewerPath,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final extra = state.extra as Map<String, dynamic>;
-          return PdfViewerPage(
-            documentId: extra['documentId'] as String?,
-            filePath: extra['filePath'] as String,
-            title: extra['title'] as String,
+          return _buildSmoothTransitionPage(
+            state: state,
+            child: PdfViewerPage(
+              documentId: extra['documentId'] as String?,
+              filePath: extra['filePath'] as String,
+              title: extra['title'] as String,
+            ),
           );
         },
       ),
       GoRoute(
         path: imageViewerPath,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final extra = state.extra as Map<String, dynamic>;
-          return ImageViewerPage(
-            documentId: extra['documentId'] as String,
-            filePath: extra['filePath'] as String,
-            title: extra['title'] as String,
+          return _buildSmoothTransitionPage(
+            state: state,
+            child: ImageViewerPage(
+              documentId: extra['documentId'] as String,
+              filePath: extra['filePath'] as String,
+              title: extra['title'] as String,
+            ),
           );
         },
       ),
       GoRoute(
         path: scanSessionPath,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final initialPagePath = state.extra as String;
-          return ScanSessionPage(initialPagePath: initialPagePath);
+          return _buildSmoothTransitionPage(
+            state: state,
+            child: ScanSessionPage(initialPagePath: initialPagePath),
+          );
         },
       ),
     ],

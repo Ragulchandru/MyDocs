@@ -10,6 +10,9 @@ import '../../../../core/router/app_router.dart';
 import '../../domain/usecases/scan_document_usecase.dart';
 import '../providers/document_providers.dart';
 import '../providers/scan_session_provider.dart';
+import '../../../../core/utils/permissions.dart';
+import '../../../../features/documents/presentation/utils/scanner_error_handler.dart';
+import '../../../../features/documents/domain/services/document_scanner_service.dart';
 
 class ScanSessionPage extends ConsumerStatefulWidget {
   final String initialPagePath;
@@ -110,6 +113,16 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
   Future<void> _addPage() async {
     if (_isScanning || _isGeneratingPdf || _isPreparingPreview) return;
     final localizations = AppLocalizations.of(context);
+
+    // Request camera permission using Helper (decoupled from context)
+    final permissionResult = await CameraPermissionHelper.checkAndRequestCameraPermission();
+    if (permissionResult != CameraPermissionResult.granted) {
+      if (mounted) {
+        await ScannerErrorHandler.handlePermissionResult(context, permissionResult, localizations);
+      }
+      return;
+    }
+
     setState(() => _isScanning = true);
 
     Stopwatch? stopwatch;
@@ -122,13 +135,17 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
       final scannerService = ref.read(documentScannerServiceProvider);
       if (kDebugMode) debugPrint('[ScanTiming] _addPage: Scanner launch initiated');
 
-      final File? scannedFile = await scannerService.scanDocument();
+      // Dismiss UI loading state right before native scanner takes over (Priority 9)
+      setState(() => _isScanning = false);
+
+      final result = await scannerService.scanDocument();
 
       if (kDebugMode && stopwatch != null) {
         debugPrint('[ScanTiming] _addPage: Google ML Kit native scanner result returned to Flutter: ${stopwatch.elapsedMilliseconds} ms');
       }
 
-      if (scannedFile != null) {
+      if (result.status == ScannerStatus.success && result.file != null) {
+        final scannedFile = result.file!;
         if (kDebugMode && stopwatch != null) stopwatch.reset();
         final fileExists = await scannedFile.exists();
         final fileLength = fileExists ? await scannedFile.length() : 0;
@@ -136,9 +153,22 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
           debugPrint('[ScanTiming] _addPage: File existence/readability validation: ${stopwatch.elapsedMilliseconds} ms (size: $fileLength bytes)');
         }
         ref.read(scanSessionProvider.notifier).addPage(scannedFile);
+      } else {
+        if (mounted) {
+          ScannerErrorHandler.handleScannerResult(context, result, localizations);
+        }
       }
-    } catch (_) {
-      _showSnackBar(localizations.errorCameraPermission);
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[ScanTiming] _addPage error: $e');
+      }
+      if (mounted) {
+        final fallbackResult = ScannerResult(
+          status: ScannerStatus.failed,
+          errorMessage: e.toString(),
+        );
+        ScannerErrorHandler.handleScannerResult(context, fallbackResult, localizations);
+      }
     } finally {
       if (mounted) {
         setState(() => _isScanning = false);
@@ -149,6 +179,16 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
   Future<void> _replacePage(int index) async {
     if (_isScanning || _isGeneratingPdf || _isPreparingPreview) return;
     final localizations = AppLocalizations.of(context);
+
+    // Request camera permission using Helper (decoupled from context)
+    final permissionResult = await CameraPermissionHelper.checkAndRequestCameraPermission();
+    if (permissionResult != CameraPermissionResult.granted) {
+      if (mounted) {
+        await ScannerErrorHandler.handlePermissionResult(context, permissionResult, localizations);
+      }
+      return;
+    }
+
     setState(() => _isScanning = true);
 
     Stopwatch? stopwatch;
@@ -161,13 +201,17 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
       final scannerService = ref.read(documentScannerServiceProvider);
       if (kDebugMode) debugPrint('[ScanTiming] _replacePage: Scanner launch initiated');
 
-      final File? scannedFile = await scannerService.scanDocument();
+      // Dismiss UI loading state right before native scanner takes over (Priority 9)
+      setState(() => _isScanning = false);
+
+      final result = await scannerService.scanDocument();
 
       if (kDebugMode && stopwatch != null) {
         debugPrint('[ScanTiming] _replacePage: Google ML Kit native scanner result returned to Flutter: ${stopwatch.elapsedMilliseconds} ms');
       }
 
-      if (scannedFile != null) {
+      if (result.status == ScannerStatus.success && result.file != null) {
+        final scannedFile = result.file!;
         if (kDebugMode && stopwatch != null) stopwatch.reset();
         final fileExists = await scannedFile.exists();
         final fileLength = fileExists ? await scannedFile.length() : 0;
@@ -175,9 +219,22 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
           debugPrint('[ScanTiming] _replacePage: File existence/readability validation: ${stopwatch.elapsedMilliseconds} ms (size: $fileLength bytes)');
         }
         ref.read(scanSessionProvider.notifier).replacePage(index, scannedFile);
+      } else {
+        if (mounted) {
+          ScannerErrorHandler.handleScannerResult(context, result, localizations);
+        }
       }
-    } catch (_) {
-      _showSnackBar(localizations.errorCameraPermission);
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[ScanTiming] _replacePage error: $e');
+      }
+      if (mounted) {
+        final fallbackResult = ScannerResult(
+          status: ScannerStatus.failed,
+          errorMessage: e.toString(),
+        );
+        ScannerErrorHandler.handleScannerResult(context, fallbackResult, localizations);
+      }
     } finally {
       if (mounted) {
         setState(() => _isScanning = false);

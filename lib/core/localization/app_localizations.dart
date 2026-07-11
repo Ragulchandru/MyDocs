@@ -517,6 +517,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to import the selected documents.'**
   String get importAllFailed;
+
+  /// No description provided for @cameraPermissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera Access Required'**
+  String get cameraPermissionTitle;
+
+  /// No description provided for @cameraPermissionMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'MyDocs needs camera access to scan documents.'**
+  String get cameraPermissionMessage;
+
+  /// No description provided for @cameraPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera permission is required to scan documents.'**
+  String get cameraPermissionDenied;
+
+  /// No description provided for @cameraPermissionPermanentlyDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera access is disabled. Enable it in App Settings to scan documents.'**
+  String get cameraPermissionPermanentlyDenied;
+
+  /// No description provided for @openSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get openSettings;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @scannerUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Document scanning is unavailable on this device.'**
+  String get scannerUnavailable;
+
+  /// No description provided for @scannerGooglePlayServicesError.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Play Services is unavailable or outdated. Please update it to use the scanner.'**
+  String get scannerGooglePlayServicesError;
+
+  /// No description provided for @scannerUnexpectedError.
+  ///
+  /// In en, this message translates to:
+  /// **'An unexpected scanner error occurred: {message}'**
+  String scannerUnexpectedError(String message);
 }
 
 class _AppLocalizationsDelegate
