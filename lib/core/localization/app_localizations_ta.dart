@@ -220,4 +220,26 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get preparingPreview => 'முன்னோட்டம் தயாரிக்கப்படுகிறது...';
+
+  @override
+  String get importingDocuments => 'ஆவணங்கள் இறக்குமதி செய்யப்படுகின்றன';
+
+  @override
+  String importProgress(int current, int total) {
+    return '$total-இல் $current';
+  }
+
+  @override
+  String importSuccessMany(int count) {
+    return '$count ஆவணங்கள் வெற்றிகரமாக இறக்குமதி செய்யப்பட்டன.';
+  }
+
+  @override
+  String importPartial(int success, int total, int fail) {
+    return '$total-இல் $success ஆவணங்கள் இறக்குமதி செய்யப்பட்டன. $fail தோல்வியடைந்தன.';
+  }
+
+  @override
+  String get importAllFailed =>
+      'தேர்ந்தெடுக்கப்பட்ட ஆவணங்களை இறக்குமதி செய்ய முடியவில்லை.';
 }

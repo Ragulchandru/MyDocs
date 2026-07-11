@@ -1,5 +1,4 @@
-// lib/features/documents/presentation/providers/document_providers.dart
-
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import '../../../../core/storage/storage_constants.dart';
@@ -136,3 +135,114 @@ class RecycleBinSelectionNotifier extends StateNotifier<Set<String>> {
     state = const {};
   }
 }
+
+class BatchImportState {
+  final bool isImporting;
+  final int current;
+  final int total;
+  final String currentFilename;
+
+  BatchImportState({
+    required this.isImporting,
+    required this.current,
+    required this.total,
+    required this.currentFilename,
+  });
+
+  factory BatchImportState.initial() => BatchImportState(
+        isImporting: false,
+        current: 0,
+        total: 0,
+        currentFilename: '',
+      );
+
+  BatchImportState copyWith({
+    bool? isImporting,
+    int? current,
+    int? total,
+    String? currentFilename,
+  }) {
+    return BatchImportState(
+      isImporting: isImporting ?? this.isImporting,
+      current: current ?? this.current,
+      total: total ?? this.total,
+      currentFilename: currentFilename ?? this.currentFilename,
+    );
+  }
+}
+
+class BatchImportNotifier extends StateNotifier<BatchImportState> {
+  final ImportDocumentUseCase _importUseCase;
+
+  BatchImportNotifier(this._importUseCase) : super(BatchImportState.initial());
+
+  Future<BatchImportResult> importFiles(List<PlatformFile> files) async {
+    if (state.isImporting) {
+      return BatchImportResult(successCount: 0, failCount: files.length, totalCount: files.length);
+    }
+
+    state = BatchImportState(
+      isImporting: true,
+      current: 0,
+      total: files.length,
+      currentFilename: '',
+    );
+
+    int successCount = 0;
+    int failCount = 0;
+
+    for (final file in files) {
+      if (file.path == null) {
+        failCount++;
+        continue;
+      }
+
+      state = state.copyWith(
+        current: state.current + 1,
+        currentFilename: file.name,
+      );
+
+      try {
+        await _importUseCase.execute(file.path!, file.name);
+        successCount++;
+      } catch (_) {
+        failCount++;
+      }
+    }
+
+    state = BatchImportState.initial();
+
+    return BatchImportResult(
+      successCount: successCount,
+      failCount: failCount,
+      totalCount: files.length,
+    );
+  }
+}
+
+class BatchImportResult {
+  final int successCount;
+  final int failCount;
+  final int totalCount;
+
+  BatchImportResult({
+    required this.successCount,
+    required this.failCount,
+    required this.totalCount,
+  });
+}
+
+final batchImportProvider = StateNotifierProvider<BatchImportNotifier, BatchImportState>((ref) {
+  final importUseCase = ref.watch(importDocumentUseCaseProvider);
+  return BatchImportNotifier(importUseCase);
+});
+
+final isSelectionModeProvider = Provider<bool>((ref) {
+  final selection = ref.watch(selectionProvider);
+  return selection.isNotEmpty;
+});
+
+final isRecycleBinSelectionModeProvider = Provider<bool>((ref) {
+  final selection = ref.watch(recycleBinSelectionProvider);
+  return selection.isNotEmpty;
+});

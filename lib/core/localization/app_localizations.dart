@@ -487,6 +487,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Preparing preview...'**
   String get preparingPreview;
+
+  /// No description provided for @importingDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing documents'**
+  String get importingDocuments;
+
+  /// No description provided for @importProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {total}'**
+  String importProgress(int current, int total);
+
+  /// No description provided for @importSuccessMany.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} documents imported successfully.'**
+  String importSuccessMany(int count);
+
+  /// No description provided for @importPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'{success} of {total} documents imported. {fail} failed.'**
+  String importPartial(int success, int total, int fail);
+
+  /// No description provided for @importAllFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to import the selected documents.'**
+  String get importAllFailed;
 }
 
 class _AppLocalizationsDelegate

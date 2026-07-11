@@ -87,5 +87,40 @@
   "shareSelected": "Share Selected",
   "noValidFilesToShare": "No valid files found to share.",
   "preview": "Preview",
-  "preparingPreview": "Preparing preview..."
+  "preparingPreview": "Preparing preview...",
+  "importingDocuments": "Importing documents",
+  "importProgress": "{current} of {total}",
+  "@importProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "importSuccessMany": "{count} documents imported successfully.",
+  "@importSuccessMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importPartial": "{success} of {total} documents imported. {fail} failed.",
+  "@importPartial": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "fail": {
+        "type": "int"
+      }
+    }
+  },
+  "importAllFailed": "Unable to import the selected documents."
 }

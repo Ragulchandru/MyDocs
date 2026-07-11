@@ -69,14 +69,10 @@ class _FoldersPageState extends ConsumerState<FoldersPage> {
     final accentColor = isDark ? const Color(0xFF0A84FF) : const Color(0xFF007AFF);
     final primaryTextColor = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF000000);
 
-    return PopScope(
-      canPop: _selectedFolder == null,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        setState(() => _selectedFolder = null);
-      },
-      child: ResponsiveScaffold(
-        currentPath: AppRouter.foldersPath,
+    return ResponsiveScaffold(
+      currentPath: AppRouter.foldersPath,
+      hasInternalBackState: _selectedFolder != null,
+      onInternalBack: () => setState(() => _selectedFolder = null),
         title: _selectedFolder == null
             ? Text(
                 localizations.navFolders,
@@ -267,7 +263,6 @@ class _FoldersPageState extends ConsumerState<FoldersPage> {
             message: localizations.errorGeneric(err.toString()),
           ),
         ),
-      ),
-    );
-  }
+      );
+    }
 }

@@ -30,14 +30,15 @@ class _ImageViewerPageState extends State<ImageViewerPage> with SingleTickerProv
   Animation<Matrix4>? _zoomAnimation;
   TapDownDetails? _doubleTapDetails;
 
-  // Stores the initial matrix calculated to fit the image on the screen
-  late Matrix4 _fitMatrix;
   double _imageWidth = 0.0;
   double _imageHeight = 0.0;
-  double _fitScale = 1.0;
 
   bool _isLoading = true;
   String? _errorMessage;
+
+  // Viewport tracking variables
+  double _lastViewportWidth = 0.0;
+  double _lastViewportHeight = 0.0;
 
   @override
   void initState() {
@@ -122,27 +123,8 @@ class _ImageViewerPageState extends State<ImageViewerPage> with SingleTickerProv
       return;
     }
 
-    // 5. Calculate initial fit scale matrix
     if (mounted) {
-      final mediaQuery = MediaQuery.of(context);
-      final screenWidth = mediaQuery.size.width;
-      final screenHeight = mediaQuery.size.height;
-
-      final scaleX = screenWidth / _imageWidth;
-      final scaleY = screenHeight / _imageHeight;
-      // Dynamically fit the entire image inside the screen bounds
-      final fitScale = scaleX < scaleY ? scaleX : scaleY;
-
-      final translateX = (screenWidth - _imageWidth * fitScale) / 2;
-      final translateY = (screenHeight - _imageHeight * fitScale) / 2;
-
-      _fitMatrix = Matrix4.identity()
-        ..translateByDouble(translateX, translateY, 0.0, 1.0)
-        ..scaleByDouble(fitScale, fitScale, 1.0, 1.0);
-
-      _transformationController.value = _fitMatrix;
-      _fitScale = fitScale;
-
+      _transformationController.value = Matrix4.identity();
       setState(() {
         _isLoading = false;
       });
@@ -150,21 +132,28 @@ class _ImageViewerPageState extends State<ImageViewerPage> with SingleTickerProv
   }
 
   void _handleDoubleTap() {
+    if (_animationController.isAnimating) {
+      _animationController.stop();
+    }
+
     final currentMatrix = _transformationController.value;
     final currentScale = currentMatrix.storage[0];
-    final fitScale = _fitMatrix.storage[0];
 
     Matrix4 endMatrix;
-    // If already zoomed, double tap resets back to Fit Screen
-    if (currentScale > fitScale * 1.1) {
-      endMatrix = _fitMatrix;
+    // If already zoomed, double tap resets back to identity (Fit Screen)
+    if (currentScale > 1.1) {
+      endMatrix = Matrix4.identity();
     } else {
-      final position = _doubleTapDetails!.localPosition;
-      final targetScale = fitScale * 2.5;
+      const double targetScale = 2.5;
+      final tapPos = _doubleTapDetails?.localPosition ?? Offset(_lastViewportWidth / 2, _lastViewportHeight / 2);
 
-      // Translate coordinates to center zoom on tap coordinates
+      // Formula for zooming into a focal point:
+      // Translate to match the focal point in the viewport
+      final double x = tapPos.dx - (tapPos.dx * targetScale);
+      final double y = tapPos.dy - (tapPos.dy * targetScale);
+
       endMatrix = Matrix4.identity()
-        ..translateByDouble(-position.dx * 1.5, -position.dy * 1.5, 0.0, 1.0)
+        ..translateByDouble(x, y, 0.0, 1.0)
         ..scaleByDouble(targetScale, targetScale, 1.0, 1.0);
     }
 
@@ -182,10 +171,14 @@ class _ImageViewerPageState extends State<ImageViewerPage> with SingleTickerProv
   }
 
   void _resetToFit() {
+    if (_animationController.isAnimating) {
+      _animationController.stop();
+    }
+
     final currentMatrix = _transformationController.value;
     _zoomAnimation = Matrix4Tween(
       begin: currentMatrix,
-      end: _fitMatrix,
+      end: Matrix4.identity(),
     ).animate(
       CurvedAnimation(
         parent: _animationController,
@@ -262,36 +255,62 @@ class _ImageViewerPageState extends State<ImageViewerPage> with SingleTickerProv
       body: SafeArea(
         top: false,
         bottom: false,
-        child: GestureDetector(
-          onDoubleTapDown: (details) => _doubleTapDetails = details,
-          onDoubleTap: _handleDoubleTap,
-          child: Center(
-            child: InteractiveViewer(
-              transformationController: _transformationController,
-              minScale: _fitScale,
-              maxScale: _fitScale * 6.0,
-              boundaryMargin: const EdgeInsets.all(32.0),
-              constrained: false, // Allows image to be sized independently of constraints
-              child: SizedBox(
-                width: _imageWidth,
-                height: _imageHeight,
-                child: Hero(
-                  tag: widget.documentId,
-                  child: Image.file(
-                    File(widget.filePath),
-                    fit: BoxFit.fill,
-                    errorBuilder: (context, error, stackTrace) {
-                      return DocumentErrorWidget(
-                        title: localizations.errorUnableToOpen,
-                        message: localizations.errorUnableToOpen,
-                        onOk: () => Navigator.of(context).pop(),
-                      );
-                    },
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final double viewportWidth = constraints.maxWidth;
+            final double viewportHeight = constraints.maxHeight;
+
+            // Trigger reset only on actual viewport dimensions change
+            if (_lastViewportWidth != viewportWidth || _lastViewportHeight != viewportHeight) {
+              _lastViewportWidth = viewportWidth;
+              _lastViewportHeight = viewportHeight;
+
+              // Schedule a one-time post-frame reset to identity matrix
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  _transformationController.value = Matrix4.identity();
+                }
+              });
+            }
+
+            final double scaleX = viewportWidth / _imageWidth;
+            final double scaleY = viewportHeight / _imageHeight;
+            final double scale = scaleX < scaleY ? scaleX : scaleY;
+
+            final double fittedWidth = _imageWidth * scale;
+            final double fittedHeight = _imageHeight * scale;
+
+            return GestureDetector(
+              onDoubleTapDown: (details) => _doubleTapDetails = details,
+              onDoubleTap: _handleDoubleTap,
+              child: Center(
+                child: InteractiveViewer(
+                  transformationController: _transformationController,
+                  minScale: 1.0,
+                  maxScale: 6.0,
+                  boundaryMargin: EdgeInsets.zero,
+                  child: SizedBox(
+                    width: fittedWidth,
+                    height: fittedHeight,
+                    child: Hero(
+                      tag: widget.documentId,
+                      child: Image.file(
+                        File(widget.filePath),
+                        fit: BoxFit.fill,
+                        errorBuilder: (context, error, stackTrace) {
+                          return DocumentErrorWidget(
+                            title: localizations.errorUnableToOpen,
+                            message: localizations.errorUnableToOpen,
+                            onOk: () => Navigator.of(context).pop(),
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );

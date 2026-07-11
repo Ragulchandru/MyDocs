@@ -215,4 +215,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get preparingPreview => 'Preparing preview...';
+
+  @override
+  String get importingDocuments => 'Importing documents';
+
+  @override
+  String importProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String importSuccessMany(int count) {
+    return '$count documents imported successfully.';
+  }
+
+  @override
+  String importPartial(int success, int total, int fail) {
+    return '$success of $total documents imported. $fail failed.';
+  }
+
+  @override
+  String get importAllFailed => 'Unable to import the selected documents.';
 }

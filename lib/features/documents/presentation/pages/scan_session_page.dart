@@ -527,6 +527,7 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
                               final file = scannedPages[index];
                               
                               return DragTarget<int>(
+                                key: ValueKey(file.path),
                                 builder: (context, candidateData, rejectedData) {
                                   return LongPressDraggable<int>(
                                     data: index,

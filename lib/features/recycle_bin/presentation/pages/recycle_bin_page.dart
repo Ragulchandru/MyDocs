@@ -179,20 +179,15 @@ class _RecycleBinPageState extends ConsumerState<RecycleBinPage> {
     final isDark = theme.brightness == Brightness.dark;
     final asyncDocuments = ref.watch(deletedDocumentListProvider);
     final viewMode = ref.watch(viewModeProvider);
-    final selectedIds = ref.watch(recycleBinSelectionProvider);
-    final isSelectionMode = selectedIds.isNotEmpty;
+    final isSelectionMode = ref.watch(isRecycleBinSelectionModeProvider);
     final accentColor = theme.colorScheme.primary;
 
-    return PopScope(
-      canPop: !isSelectionMode,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        ref.read(recycleBinSelectionProvider.notifier).clearSelection();
-      },
-      child: Stack(
-        children: [
-          ResponsiveScaffold(
-            currentPath: AppRouter.recycleBinPath,
+    return Stack(
+      children: [
+        ResponsiveScaffold(
+          currentPath: AppRouter.recycleBinPath,
+          hasInternalBackState: isSelectionMode,
+          onInternalBack: () => ref.read(recycleBinSelectionProvider.notifier).clearSelection(),
             leading: isSelectionMode
                 ? IconButton(
                     icon: const Icon(Icons.close_rounded),
@@ -200,13 +195,18 @@ class _RecycleBinPageState extends ConsumerState<RecycleBinPage> {
                   )
                 : null,
             title: isSelectionMode
-                ? Text(
-                    localizations.selectedCount(selectedIds.length),
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.5,
-                    ),
+                ? Consumer(
+                    builder: (context, ref, child) {
+                      final selectedIds = ref.watch(recycleBinSelectionProvider);
+                      return Text(
+                        localizations.selectedCount(selectedIds.length),
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                        ),
+                      );
+                    },
                   )
                 : Text(
                     localizations.navRecycleBin,
@@ -230,6 +230,7 @@ class _RecycleBinPageState extends ConsumerState<RecycleBinPage> {
                     IconButton(
                       icon: const Icon(Icons.restore_rounded),
                       onPressed: () {
+                        final selectedIds = ref.read(recycleBinSelectionProvider);
                         _restoreDocuments(selectedIds.toList());
                       },
                       tooltip: localizations.restore,
@@ -237,6 +238,7 @@ class _RecycleBinPageState extends ConsumerState<RecycleBinPage> {
                     IconButton(
                       icon: const Icon(Icons.delete_forever_rounded, color: Colors.red),
                       onPressed: () {
+                        final selectedIds = ref.read(recycleBinSelectionProvider);
                         _confirmPermanentDeleteDialog(selectedIds.toList());
                       },
                       tooltip: localizations.deletePermanently,
@@ -255,6 +257,7 @@ class _RecycleBinPageState extends ConsumerState<RecycleBinPage> {
               data: (documents) {
                 // Safely filter selection state to valid documents post-frame if needed
                 final activeIds = documents.map((d) => d.id).toSet();
+                final selectedIds = ref.read(recycleBinSelectionProvider);
                 final validSelectedIds = selectedIds.intersection(activeIds);
                 if (validSelectedIds.length != selectedIds.length) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -287,106 +290,14 @@ class _RecycleBinPageState extends ConsumerState<RecycleBinPage> {
                                 delegate: SliverChildBuilderDelegate(
                                   (context, index) {
                                     final doc = documents[index];
-                                    final isSelected = selectedIds.contains(doc.id);
-                                    return GestureDetector(
-                                      onTap: () {
-                                        if (isSelectionMode) {
-                                          ref.read(recycleBinSelectionProvider.notifier).toggle(doc.id);
-                                        } else {
-                                          _showDeletedDocumentActions(doc);
-                                        }
-                                      },
-                                      onLongPress: () {
-                                        ref.read(recycleBinSelectionProvider.notifier).toggle(doc.id);
-                                      },
-                                      child: AppCard(
-                                        key: ValueKey(doc.id),
-                                        radius: 16,
-                                        padding: EdgeInsets.zero,
-                                        color: isSelected ? accentColor.withValues(alpha: isDark ? 0.15 : 0.08) : null,
-                                        borderColor: isSelected ? accentColor : null,
-                                        child: Stack(
-                                          children: [
-                                            Column(
-                                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                                              children: [
-                                                Expanded(
-                                                  child: ClipRRect(
-                                                    borderRadius: const BorderRadius.only(
-                                                      topLeft: Radius.circular(16),
-                                                      topRight: Radius.circular(16),
-                                                    ),
-                                                    child: DocumentThumbnail(
-                                                      document: doc,
-                                                      height: double.infinity,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Container(
-                                                  padding: const EdgeInsets.all(10),
-                                                  child: Row(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Expanded(
-                                                        child: Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          children: [
-                                                            Text(
-                                                              doc.name,
-                                                              maxLines: 1,
-                                                              overflow: TextOverflow.ellipsis,
-                                                              style: const TextStyle(
-                                                                fontSize: 14,
-                                                                fontWeight: FontWeight.bold,
-                                                              ),
-                                                            ),
-                                                            const SizedBox(height: 2),
-                                                            Text(
-                                                              '${doc.fileType == DocumentType.pdf ? 'PDF' : doc.extension.replaceAll('.', '').toUpperCase()} • ${formatFileSize(doc.fileSize)}',
-                                                              style: const TextStyle(
-                                                                fontSize: 11,
-                                                                color: Colors.grey,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                      if (!isSelectionMode)
-                                                        IconButton(
-                                                          icon: const Icon(Icons.more_vert_rounded, color: Colors.grey, size: 18),
-                                                          padding: EdgeInsets.zero,
-                                                          constraints: const BoxConstraints(),
-                                                          onPressed: () => _showDeletedDocumentActions(doc),
-                                                        ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            if (isSelectionMode)
-                                              Positioned(
-                                                top: 8,
-                                                right: 8,
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    color: isSelected ? accentColor : Colors.white.withValues(alpha: 0.8),
-                                                    shape: BoxShape.circle,
-                                                    border: Border.all(
-                                                      color: isSelected ? Colors.transparent : Colors.grey,
-                                                      width: 1.5,
-                                                    ),
-                                                  ),
-                                                  padding: const EdgeInsets.all(2),
-                                                  child: Icon(
-                                                    Icons.check_rounded,
-                                                    size: 14,
-                                                    color: isSelected ? Colors.white : Colors.transparent,
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
+                                    return _RecycleBinGridCard(
+                                      doc: doc,
+                                      isSelectionMode: isSelectionMode,
+                                      theme: theme,
+                                      localizations: localizations,
+                                      accentColor: accentColor,
+                                      isDark: isDark,
+                                      onOpen: _showDeletedDocumentActions,
                                     );
                                   },
                                   childCount: documents.length,
@@ -396,72 +307,14 @@ class _RecycleBinPageState extends ConsumerState<RecycleBinPage> {
                                 delegate: SliverChildBuilderDelegate(
                                   (context, index) {
                                     final doc = documents[index];
-                                    final isSelected = selectedIds.contains(doc.id);
-                                    return Padding(
-                                      padding: const EdgeInsets.only(bottom: 12.0),
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          if (isSelectionMode) {
-                                            ref.read(recycleBinSelectionProvider.notifier).toggle(doc.id);
-                                          } else {
-                                            _showDeletedDocumentActions(doc);
-                                          }
-                                        },
-                                        onLongPress: () {
-                                          ref.read(recycleBinSelectionProvider.notifier).toggle(doc.id);
-                                        },
-                                        child: AppCard(
-                                          key: ValueKey(doc.id),
-                                          radius: 16,
-                                          padding: EdgeInsets.zero,
-                                          color: isSelected ? accentColor.withValues(alpha: isDark ? 0.15 : 0.08) : null,
-                                          borderColor: isSelected ? accentColor : null,
-                                          child: AppListTile(
-                                            leading: ClipRRect(
-                                              borderRadius: BorderRadius.circular(8),
-                                              child: SizedBox(
-                                                width: 44,
-                                                height: 44,
-                                                child: DocumentThumbnail(
-                                                  document: doc,
-                                                  height: 44,
-                                                ),
-                                              ),
-                                            ),
-                                            title: doc.name,
-                                            subtitle: '${doc.fileType == DocumentType.pdf ? 'PDF' : doc.extension.replaceAll('.', '').toUpperCase()} • ${formatFileSize(doc.fileSize)}',
-                                            trailing: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                if (isSelectionMode) ...[
-                                                  Container(
-                                                    decoration: BoxDecoration(
-                                                      color: isSelected ? accentColor : Colors.transparent,
-                                                      shape: BoxShape.circle,
-                                                      border: Border.all(
-                                                        color: isSelected ? Colors.transparent : Colors.grey,
-                                                        width: 1.5,
-                                                      ),
-                                                    ),
-                                                    padding: const EdgeInsets.all(2),
-                                                    child: Icon(
-                                                      Icons.check_rounded,
-                                                      size: 14,
-                                                      color: isSelected ? Colors.white : Colors.transparent,
-                                                    ),
-                                                  ),
-                                                ] else ...[
-                                                  IconButton(
-                                                    icon: const Icon(Icons.more_vert_rounded, color: Colors.grey),
-                                                    onPressed: () => _showDeletedDocumentActions(doc),
-                                                  ),
-                                                  const Icon(Icons.chevron_right_rounded, color: Colors.grey),
-                                                ],
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
+                                    return _RecycleBinListCard(
+                                      doc: doc,
+                                      isSelectionMode: isSelectionMode,
+                                      theme: theme,
+                                      localizations: localizations,
+                                      accentColor: accentColor,
+                                      isDark: isDark,
+                                      onOpen: _showDeletedDocumentActions,
                                     );
                                   },
                                   childCount: documents.length,
@@ -480,6 +333,223 @@ class _RecycleBinPageState extends ConsumerState<RecycleBinPage> {
             ),
           ),
         ],
+      );
+    }
+}
+
+class _RecycleBinGridCard extends ConsumerWidget {
+  final Document doc;
+  final bool isSelectionMode;
+  final ThemeData theme;
+  final AppLocalizations localizations;
+  final Color accentColor;
+  final bool isDark;
+  final void Function(Document) onOpen;
+
+  const _RecycleBinGridCard({
+    required this.doc,
+    required this.isSelectionMode,
+    required this.theme,
+    required this.localizations,
+    required this.accentColor,
+    required this.isDark,
+    required this.onOpen,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isSelected = ref.watch(recycleBinSelectionProvider.select((set) => set.contains(doc.id)));
+
+    return GestureDetector(
+      onTap: () {
+        if (isSelectionMode) {
+          ref.read(recycleBinSelectionProvider.notifier).toggle(doc.id);
+        } else {
+          onOpen(doc);
+        }
+      },
+      onLongPress: () {
+        ref.read(recycleBinSelectionProvider.notifier).toggle(doc.id);
+      },
+      child: AppCard(
+        key: ValueKey(doc.id),
+        radius: 16,
+        padding: EdgeInsets.zero,
+        color: isSelected ? accentColor.withValues(alpha: isDark ? 0.15 : 0.08) : null,
+        borderColor: isSelected ? accentColor : null,
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
+                    child: DocumentThumbnail(
+                      document: doc,
+                      height: double.infinity,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              doc.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${doc.fileType == DocumentType.pdf ? 'PDF' : doc.extension.replaceAll('.', '').toUpperCase()} • ${formatFileSize(doc.fileSize)}',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (!isSelectionMode)
+                        IconButton(
+                          icon: const Icon(Icons.more_vert_rounded, color: Colors.grey, size: 18),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () => onOpen(doc),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (isSelectionMode)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isSelected ? accentColor : Colors.white.withValues(alpha: 0.8),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected ? Colors.transparent : Colors.grey,
+                      width: 1.5,
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(2),
+                  child: Icon(
+                    Icons.check_rounded,
+                    size: 14,
+                    color: isSelected ? Colors.white : Colors.transparent,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RecycleBinListCard extends ConsumerWidget {
+  final Document doc;
+  final bool isSelectionMode;
+  final ThemeData theme;
+  final AppLocalizations localizations;
+  final Color accentColor;
+  final bool isDark;
+  final void Function(Document) onOpen;
+
+  const _RecycleBinListCard({
+    required this.doc,
+    required this.isSelectionMode,
+    required this.theme,
+    required this.localizations,
+    required this.accentColor,
+    required this.isDark,
+    required this.onOpen,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isSelected = ref.watch(recycleBinSelectionProvider.select((set) => set.contains(doc.id)));
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: GestureDetector(
+        onTap: () {
+          if (isSelectionMode) {
+            ref.read(recycleBinSelectionProvider.notifier).toggle(doc.id);
+          } else {
+            onOpen(doc);
+          }
+        },
+        onLongPress: () {
+          ref.read(recycleBinSelectionProvider.notifier).toggle(doc.id);
+        },
+        child: AppCard(
+          key: ValueKey(doc.id),
+          radius: 16,
+          padding: EdgeInsets.zero,
+          color: isSelected ? accentColor.withValues(alpha: isDark ? 0.15 : 0.08) : null,
+          borderColor: isSelected ? accentColor : null,
+          child: AppListTile(
+            leading: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: SizedBox(
+                width: 44,
+                height: 44,
+                child: DocumentThumbnail(
+                  document: doc,
+                  height: 44,
+                ),
+              ),
+            ),
+            title: doc.name,
+            subtitle: '${doc.fileType == DocumentType.pdf ? 'PDF' : doc.extension.replaceAll('.', '').toUpperCase()} • ${formatFileSize(doc.fileSize)}',
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isSelectionMode) ...[
+                  Container(
+                    decoration: BoxDecoration(
+                      color: isSelected ? accentColor : Colors.transparent,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isSelected ? Colors.transparent : Colors.grey,
+                        width: 1.5,
+                      ),
+                    ),
+                    padding: const EdgeInsets.all(2),
+                    child: Icon(
+                      Icons.check_rounded,
+                      size: 14,
+                      color: isSelected ? Colors.white : Colors.transparent,
+                    ),
+                  ),
+                ] else ...[
+                  IconButton(
+                    icon: const Icon(Icons.more_vert_rounded, color: Colors.grey),
+                    onPressed: () => onOpen(doc),
+                  ),
+                  const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -1,6 +1,8 @@
 // lib/core/widgets/responsive_scaffold.dart
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../router/app_router.dart';
 import 'app_navigation_drawer.dart';
 
 class ResponsiveScaffold extends StatelessWidget {
@@ -12,6 +14,10 @@ class ResponsiveScaffold extends StatelessWidget {
   final Widget? leading;
   final bool automaticallyImplyLeading;
 
+  // Explicit back navigation parameters
+  final bool hasInternalBackState;
+  final VoidCallback? onInternalBack;
+
   const ResponsiveScaffold({
     required this.body,
     required this.currentPath,
@@ -20,6 +26,8 @@ class ResponsiveScaffold extends StatelessWidget {
     this.actions,
     this.leading,
     this.automaticallyImplyLeading = true,
+    this.hasInternalBackState = false,
+    this.onInternalBack,
     super.key,
   });
 
@@ -34,8 +42,10 @@ class ResponsiveScaffold extends StatelessWidget {
     final iconColor = isDark ? const Color(0xFF0A84FF) : const Color(0xFF007AFF);
     final dividerColor = isDark ? const Color(0xFF3A3A3C) : const Color(0xFFC7C7CC);
 
+    final Widget mainLayout;
+
     if (isTablet) {
-      return Scaffold(
+      mainLayout = Scaffold(
         body: SafeArea(
           child: Row(
             children: [
@@ -70,7 +80,7 @@ class ResponsiveScaffold extends StatelessWidget {
         ),
       );
     } else {
-      return Scaffold(
+      mainLayout = Scaffold(
         appBar: AppBar(
           title: title,
           leading: leading,
@@ -88,5 +98,24 @@ class ResponsiveScaffold extends StatelessWidget {
         floatingActionButton: floatingActionButton,
       );
     }
+
+    // Centralized strict back gesture policy:
+    // 1. If we are on Home, we only prevent pop if selection mode or other internal state is active.
+    // 2. If we are on any other top-level screen, we intercept pop (canPop = false) to either dismiss internal state or route to Home.
+    final bool isHome = currentPath == AppRouter.homePath;
+    final bool effectiveCanPop = isHome && !hasInternalBackState;
+
+    return PopScope(
+      canPop: effectiveCanPop,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (hasInternalBackState && onInternalBack != null) {
+          onInternalBack!();
+        } else if (!isHome) {
+          context.go(AppRouter.homePath);
+        }
+      },
+      child: mainLayout,
+    );
   }
 }

@@ -111,6 +111,7 @@ class _DocumentThumbnailState extends State<DocumentThumbnail> {
         fit: BoxFit.cover,
         width: double.infinity,
         height: widget.height,
+        cacheWidth: 200,
         errorBuilder: (context, error, stackTrace) {
           return Container(
             color: placeholderBg,

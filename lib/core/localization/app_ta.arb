@@ -87,5 +87,40 @@
   "shareSelected": "தேர்ந்தெடுக்கப்பட்டதை பகிர்க",
   "noValidFilesToShare": "பகிர்வதற்கு சரியான கோப்புகள் எதுவும் இல்லை.",
   "preview": "முன்னோட்டம்",
-  "preparingPreview": "முன்னோட்டம் தயாரிக்கப்படுகிறது..."
+  "preparingPreview": "முன்னோட்டம் தயாரிக்கப்படுகிறது...",
+  "importingDocuments": "ஆவணங்கள் இறக்குமதி செய்யப்படுகின்றன",
+  "importProgress": "{total}-இல் {current}",
+  "@importProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "importSuccessMany": "{count} ஆவணங்கள் வெற்றிகரமாக இறக்குமதி செய்யப்பட்டன.",
+  "@importSuccessMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importPartial": "{total}-இல் {success} ஆவணங்கள் இறக்குமதி செய்யப்பட்டன. {fail} தோல்வியடைந்தன.",
+  "@importPartial": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "fail": {
+        "type": "int"
+      }
+    }
+  },
+  "importAllFailed": "தேர்ந்தெடுக்கப்பட்ட ஆவணங்களை இறக்குமதி செய்ய முடியவில்லை."
 }

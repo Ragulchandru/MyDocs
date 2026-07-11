@@ -12,7 +12,6 @@ import 'package:share_plus/share_plus.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../../core/widgets/responsive_scaffold.dart';
 import '../../../../features/documents/domain/models/document.dart';
-import '../../../../features/documents/domain/usecases/import_document_usecase.dart';
 import '../../../../features/documents/presentation/providers/document_providers.dart';
 import '../../../../features/documents/presentation/widgets/rename_document_dialog.dart';
 import '../../../../features/documents/presentation/widgets/document_info_bottom_sheet.dart';
@@ -27,7 +26,6 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  bool _isImporting = false;
   bool _isScanning = false;
   String _searchQuery = '';
   late ScrollController _scrollController;
@@ -72,7 +70,8 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   /// Triggers camera document scan
   Future<void> _scanDocument() async {
-    if (_isImporting || _isScanning) return;
+    final importState = ref.read(batchImportProvider);
+    if (importState.isImporting || _isScanning) return;
     final localizations = AppLocalizations.of(context);
 
     setState(() => _isScanning = true);
@@ -128,9 +127,9 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   /// Handles picking and importing files
   Future<void> _importFile(DocumentType type) async {
-    if (_isImporting) return;
+    final importState = ref.read(batchImportProvider);
+    if (importState.isImporting) return;
     final localizations = AppLocalizations.of(context);
-    setState(() => _isImporting = true);
 
     try {
       FilePickerResult? result;
@@ -138,11 +137,13 @@ class _HomePageState extends ConsumerState<HomePage> {
         result = await FilePicker.platform.pickFiles(
           type: FileType.custom,
           allowedExtensions: ['pdf'],
+          allowMultiple: true,
         );
       } else {
         result = await FilePicker.platform.pickFiles(
           type: FileType.custom,
           allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
+          allowMultiple: true,
         );
       }
 
@@ -151,26 +152,32 @@ class _HomePageState extends ConsumerState<HomePage> {
         return;
       }
 
-      final file = result.files.first;
-      final path = file.path;
-      if (path == null) throw Exception('File path is null');
+      final batchResult = await ref.read(batchImportProvider.notifier).importFiles(result.files);
 
-      await ref.read(importDocumentUseCaseProvider).execute(path, file.name);
-      _showSnackBar(localizations.fileImportSuccess);
-    } on UnsupportedFileTypeException {
-      _showSnackBar(localizations.unsupportedFileTypeError);
-    } on MimeTypeMismatchException {
-      _showSnackBar(localizations.mimeMismatchError);
+      if (!mounted) return;
+      if (batchResult.successCount == batchResult.totalCount) {
+        if (batchResult.totalCount == 1) {
+          _showSnackBar(localizations.fileImportSuccess);
+        } else {
+          _showSnackBar(localizations.importSuccessMany(batchResult.successCount));
+        }
+      } else if (batchResult.successCount == 0) {
+        _showSnackBar(localizations.importAllFailed);
+      } else {
+        _showSnackBar(
+          localizations.importPartial(
+            batchResult.successCount,
+            batchResult.totalCount,
+            batchResult.failCount,
+          ),
+        );
+      }
     } catch (e) {
       final errorMsg = e.toString().toLowerCase();
       if (errorMsg.contains('permission')) {
         _showSnackBar(localizations.errorPermission);
       } else {
         _showSnackBar(localizations.errorGeneric(e.toString()));
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isImporting = false);
       }
     }
   }
@@ -488,34 +495,35 @@ class _HomePageState extends ConsumerState<HomePage> {
     final isDark = theme.brightness == Brightness.dark;
     final asyncDocuments = ref.watch(documentListProvider);
     final viewMode = ref.watch(viewModeProvider);
-    final selectedIds = ref.watch(selectionProvider);
-    final isSelectionMode = selectedIds.isNotEmpty;
+    final isSelectionMode = ref.watch(isSelectionModeProvider);
     final accentColor = theme.colorScheme.primary;
+    final importState = ref.watch(batchImportProvider);
 
-    return PopScope(
-      canPop: !isSelectionMode,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        ref.read(selectionProvider.notifier).clearSelection();
-      },
-      child: Stack(
-        children: [
-          ResponsiveScaffold(
-            currentPath: AppRouter.homePath,
-            leading: isSelectionMode
+    return Stack(
+      children: [
+        ResponsiveScaffold(
+          currentPath: AppRouter.homePath,
+          hasInternalBackState: isSelectionMode,
+          onInternalBack: () => ref.read(selectionProvider.notifier).clearSelection(),
+          leading: isSelectionMode
                 ? IconButton(
                     icon: const Icon(Icons.close_rounded),
                     onPressed: () => ref.read(selectionProvider.notifier).clearSelection(),
                   )
                 : null,
             title: isSelectionMode
-                ? Text(
-                    localizations.selectedCount(selectedIds.length),
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.5,
-                    ),
+                ? Consumer(
+                    builder: (context, ref, child) {
+                      final selectedIds = ref.watch(selectionProvider);
+                      return Text(
+                        localizations.selectedCount(selectedIds.length),
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                        ),
+                      );
+                    },
                   )
                 : Text(
                     localizations.appTitle,
@@ -542,6 +550,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     IconButton(
                       icon: const Icon(Icons.share_rounded),
                       onPressed: () async {
+                        final selectedIds = ref.read(selectionProvider);
                         final selectedDocs = <Document>[];
                         asyncDocuments.whenData((documents) {
                           for (final id in selectedIds) {
@@ -580,6 +589,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     IconButton(
                       icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
                       onPressed: () {
+                        final selectedIds = ref.read(selectionProvider);
                         _confirmMoveToRecycleBinDialog(selectedIds.toList());
                       },
                       tooltip: localizations.moveToRecycleBin,
@@ -607,6 +617,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               data: (documents) {
                 // Safely filter selection state to valid documents post-frame if needed
                 final activeIds = documents.map((d) => d.id).toSet();
+                final selectedIds = ref.read(selectionProvider);
                 final validSelectedIds = selectedIds.intersection(activeIds);
                 if (validSelectedIds.length != selectedIds.length) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -669,106 +680,17 @@ class _HomePageState extends ConsumerState<HomePage> {
                                   delegate: SliverChildBuilderDelegate(
                                     (context, index) {
                                       final doc = filteredDocs[index];
-                                      final isSelected = selectedIds.contains(doc.id);
-                                      return GestureDetector(
-                                        onTap: () {
-                                          if (isSelectionMode) {
-                                            ref.read(selectionProvider.notifier).toggle(doc.id);
-                                          } else {
-                                            _openDocument(doc);
-                                          }
-                                        },
-                                        onLongPress: () {
-                                          ref.read(selectionProvider.notifier).toggle(doc.id);
-                                        },
-                                        child: AppCard(
-                                          key: ValueKey(doc.id),
-                                          radius: 16,
-                                          padding: EdgeInsets.zero,
-                                          color: isSelected ? accentColor.withValues(alpha: isDark ? 0.15 : 0.08) : null,
-                                          borderColor: isSelected ? accentColor : null,
-                                          child: Stack(
-                                            children: [
-                                              Column(
-                                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                                children: [
-                                                  Expanded(
-                                                    child: ClipRRect(
-                                                      borderRadius: const BorderRadius.only(
-                                                        topLeft: Radius.circular(16),
-                                                        topRight: Radius.circular(16),
-                                                      ),
-                                                      child: DocumentThumbnail(
-                                                        document: doc,
-                                                        height: double.infinity,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Container(
-                                                    padding: const EdgeInsets.all(10),
-                                                    child: Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        Expanded(
-                                                          child: Column(
-                                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                                            children: [
-                                                              Text(
-                                                                doc.name,
-                                                                maxLines: 1,
-                                                                overflow: TextOverflow.ellipsis,
-                                                                style: const TextStyle(
-                                                                  fontSize: 14,
-                                                                  fontWeight: FontWeight.bold,
-                                                                ),
-                                                              ),
-                                                              const SizedBox(height: 2),
-                                                              Text(
-                                                                '${doc.fileType == DocumentType.pdf ? 'PDF' : doc.extension.replaceAll('.', '').toUpperCase()} • ${formatFileSize(doc.fileSize)}',
-                                                                style: const TextStyle(
-                                                                  fontSize: 11,
-                                                                  color: Colors.grey,
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                        if (!isSelectionMode)
-                                                          IconButton(
-                                                            icon: const Icon(Icons.more_vert_rounded, color: Colors.grey, size: 18),
-                                                            padding: EdgeInsets.zero,
-                                                            constraints: const BoxConstraints(),
-                                                            onPressed: () => _showDocumentActions(doc),
-                                                          ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              if (isSelectionMode)
-                                                Positioned(
-                                                  top: 8,
-                                                  right: 8,
-                                                  child: Container(
-                                                    decoration: BoxDecoration(
-                                                      color: isSelected ? accentColor : Colors.white.withValues(alpha: 0.8),
-                                                      shape: BoxShape.circle,
-                                                      border: Border.all(
-                                                        color: isSelected ? Colors.transparent : Colors.grey,
-                                                        width: 1.5,
-                                                      ),
-                                                    ),
-                                                    padding: const EdgeInsets.all(2),
-                                                    child: Icon(
-                                                      Icons.check_rounded,
-                                                      size: 14,
-                                                      color: isSelected ? Colors.white : Colors.transparent,
-                                                    ),
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                        ),
+                                      return _DocumentGridCard(
+                                        doc: doc,
+                                        searchQuery: _searchQuery,
+                                        filteredDocs: filteredDocs,
+                                        isSelectionMode: isSelectionMode,
+                                        theme: theme,
+                                        localizations: localizations,
+                                        accentColor: accentColor,
+                                        isDark: isDark,
+                                        onOpen: () => _openDocument(doc),
+                                        onOptions: _showDocumentActions,
                                       );
                                     },
                                     childCount: filteredDocs.length,
@@ -778,72 +700,15 @@ class _HomePageState extends ConsumerState<HomePage> {
                                   delegate: SliverChildBuilderDelegate(
                                     (context, index) {
                                       final doc = filteredDocs[index];
-                                      final isSelected = selectedIds.contains(doc.id);
-                                      return Padding(
-                                        padding: const EdgeInsets.only(bottom: 12.0),
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            if (isSelectionMode) {
-                                              ref.read(selectionProvider.notifier).toggle(doc.id);
-                                            } else {
-                                              _openDocument(doc);
-                                            }
-                                          },
-                                          onLongPress: () {
-                                            ref.read(selectionProvider.notifier).toggle(doc.id);
-                                          },
-                                          child: AppCard(
-                                            key: ValueKey(doc.id),
-                                            radius: 16,
-                                            padding: EdgeInsets.zero,
-                                            color: isSelected ? accentColor.withValues(alpha: isDark ? 0.15 : 0.08) : null,
-                                            borderColor: isSelected ? accentColor : null,
-                                            child: AppListTile(
-                                              leading: ClipRRect(
-                                                borderRadius: BorderRadius.circular(8),
-                                                child: SizedBox(
-                                                  width: 44,
-                                                  height: 44,
-                                                  child: DocumentThumbnail(
-                                                    document: doc,
-                                                    height: 44,
-                                                  ),
-                                                ),
-                                              ),
-                                              title: doc.name,
-                                              subtitle: '${doc.fileType == DocumentType.pdf ? 'PDF' : doc.extension.replaceAll('.', '').toUpperCase()} • ${formatFileSize(doc.fileSize)}',
-                                              trailing: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  if (isSelectionMode) ...[
-                                                    Container(
-                                                      decoration: BoxDecoration(
-                                                        color: isSelected ? accentColor : Colors.transparent,
-                                                        shape: BoxShape.circle,
-                                                        border: Border.all(
-                                                          color: isSelected ? Colors.transparent : Colors.grey,
-                                                          width: 1.5,
-                                                        ),
-                                                      ),
-                                                      padding: const EdgeInsets.all(2),
-                                                      child: Icon(
-                                                        Icons.check_rounded,
-                                                        size: 14,
-                                                        color: isSelected ? Colors.white : Colors.transparent,
-                                                      ),
-                                                    ),
-                                                  ] else ...[
-                                                    IconButton(
-                                                      icon: const Icon(Icons.more_vert_rounded, color: Colors.grey),
-                                                      onPressed: () => _showDocumentActions(doc),
-                                                    ),
-                                                    const Icon(Icons.chevron_right_rounded, color: Colors.grey),
-                                                  ],
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                                      return _DocumentListCard(
+                                        doc: doc,
+                                        isSelectionMode: isSelectionMode,
+                                        theme: theme,
+                                        localizations: localizations,
+                                        accentColor: accentColor,
+                                        isDark: isDark,
+                                        onOpen: () => _openDocument(doc),
+                                        onOptions: _showDocumentActions,
                                       );
                                     },
                                     childCount: filteredDocs.length,
@@ -869,12 +734,12 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
 
           // Full screen loading overlay shown during document import
-          if (_isImporting)
+          if (importState.isImporting)
             ModalBarrier(
               dismissible: false,
               color: Colors.black.withValues(alpha: 0.5),
             ),
-          if (_isImporting)
+          if (importState.isImporting)
             Center(
               child: Card(
                 elevation: 4,
@@ -888,11 +753,37 @@ class _HomePageState extends ConsumerState<HomePage> {
                       const CircularProgressIndicator(),
                       const SizedBox(height: 16),
                       Text(
-                        localizations.importingLabel,
+                        importState.total == 1
+                            ? localizations.importingLabel
+                            : localizations.importingDocuments,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      if (importState.total > 1) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          localizations.importProgress(importState.current, importState.total),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isDark ? const Color(0xFF8E8E93) : const Color(0xFF8E8E93),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          importState.currentFilename,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? const Color(0xFFAEAEB2) : const Color(0xFF6D6D72),
+                          ),
                         ),
                       ),
                     ],
@@ -934,6 +825,231 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
             ),
         ],
+      );
+    }
+}
+
+class _DocumentGridCard extends ConsumerWidget {
+  final Document doc;
+  final String searchQuery;
+  final List<Document> filteredDocs;
+  final bool isSelectionMode;
+  final ThemeData theme;
+  final AppLocalizations localizations;
+  final Color accentColor;
+  final bool isDark;
+  final VoidCallback onOpen;
+  final void Function(Document) onOptions;
+
+  const _DocumentGridCard({
+    required this.doc,
+    required this.searchQuery,
+    required this.filteredDocs,
+    required this.isSelectionMode,
+    required this.theme,
+    required this.localizations,
+    required this.accentColor,
+    required this.isDark,
+    required this.onOpen,
+    required this.onOptions,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isSelected = ref.watch(selectionProvider.select((set) => set.contains(doc.id)));
+
+    return GestureDetector(
+      onTap: () {
+        if (isSelectionMode) {
+          ref.read(selectionProvider.notifier).toggle(doc.id);
+        } else {
+          onOpen();
+        }
+      },
+      onLongPress: () {
+        ref.read(selectionProvider.notifier).toggle(doc.id);
+      },
+      child: AppCard(
+        key: ValueKey(doc.id),
+        radius: 16,
+        padding: EdgeInsets.zero,
+        color: isSelected ? accentColor.withValues(alpha: isDark ? 0.15 : 0.08) : null,
+        borderColor: isSelected ? accentColor : null,
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
+                    child: DocumentThumbnail(
+                      document: doc,
+                      height: double.infinity,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              doc.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${doc.fileType == DocumentType.pdf ? 'PDF' : doc.extension.replaceAll('.', '').toUpperCase()} • ${formatFileSize(doc.fileSize)}',
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey,
+                                ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (!isSelectionMode)
+                        IconButton(
+                          icon: const Icon(Icons.more_vert_rounded, color: Colors.grey, size: 18),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () => onOptions(doc),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (isSelectionMode)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isSelected ? accentColor : Colors.white.withValues(alpha: 0.8),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected ? Colors.transparent : Colors.grey,
+                      width: 1.5,
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(2),
+                  child: Icon(
+                    Icons.check_rounded,
+                    size: 14,
+                    color: isSelected ? Colors.white : Colors.transparent,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DocumentListCard extends ConsumerWidget {
+  final Document doc;
+  final bool isSelectionMode;
+  final ThemeData theme;
+  final AppLocalizations localizations;
+  final Color accentColor;
+  final bool isDark;
+  final VoidCallback onOpen;
+  final void Function(Document) onOptions;
+
+  const _DocumentListCard({
+    required this.doc,
+    required this.isSelectionMode,
+    required this.theme,
+    required this.localizations,
+    required this.accentColor,
+    required this.isDark,
+    required this.onOpen,
+    required this.onOptions,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isSelected = ref.watch(selectionProvider.select((set) => set.contains(doc.id)));
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: GestureDetector(
+        onTap: () {
+          if (isSelectionMode) {
+            ref.read(selectionProvider.notifier).toggle(doc.id);
+          } else {
+            onOpen();
+          }
+        },
+        onLongPress: () {
+          ref.read(selectionProvider.notifier).toggle(doc.id);
+        },
+        child: AppCard(
+          key: ValueKey(doc.id),
+          radius: 16,
+          padding: EdgeInsets.zero,
+          color: isSelected ? accentColor.withValues(alpha: isDark ? 0.15 : 0.08) : null,
+          borderColor: isSelected ? accentColor : null,
+          child: AppListTile(
+            leading: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: SizedBox(
+                width: 44,
+                height: 44,
+                child: DocumentThumbnail(
+                  document: doc,
+                  height: 44,
+                ),
+              ),
+            ),
+            title: doc.name,
+            subtitle: '${doc.fileType == DocumentType.pdf ? 'PDF' : doc.extension.replaceAll('.', '').toUpperCase()} • ${formatFileSize(doc.fileSize)}',
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isSelectionMode) ...[
+                  Container(
+                    decoration: BoxDecoration(
+                      color: isSelected ? accentColor : Colors.transparent,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isSelected ? Colors.transparent : Colors.grey,
+                        width: 1.5,
+                      ),
+                    ),
+                    padding: const EdgeInsets.all(2),
+                    child: Icon(
+                      Icons.check_rounded,
+                      size: 14,
+                      color: isSelected ? Colors.white : Colors.transparent,
+                    ),
+                  ),
+                ] else ...[
+                  IconButton(
+                    icon: const Icon(Icons.more_vert_rounded, color: Colors.grey),
+                    onPressed: () => onOptions(doc),
+                  ),
+                  const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
