@@ -20,7 +20,6 @@ class ScanDocumentUseCase {
   ScanDocumentUseCase(this._repository, this._storageStrategy);
 
   /// Renders all scanned images into a temporary, compressed multi-page A4 PDF file.
-  /// Downscales images to target ~150-250 DPI (width 1200px max) and quality 75% for size efficiency.
   Future<String> generateTempPdf(List<String> scannedImagePaths) async {
     if (scannedImagePaths.isEmpty) {
       throw const FileSystemException('Scanned images list cannot be empty');
@@ -29,7 +28,40 @@ class ScanDocumentUseCase {
     final pdf = pw.Document();
 
     for (final path in scannedImagePaths) {
-      final compressedBytes = await _compressImage(path);
+      final file = File(path);
+      int retryCount = 0;
+
+      // Wait for image file to exist and be fully written
+      while ((!await file.exists() || await file.length() == 0) && retryCount < 10) {
+        await Future.delayed(const Duration(milliseconds: 100));
+        retryCount++;
+      }
+
+      if (!await file.exists()) {
+        throw FileSystemException('Scanned image file does not exist', path);
+      }
+
+      final bytes = await file.readAsBytes();
+      if (bytes.isEmpty) {
+        throw FileSystemException('Scanned image file is empty (0 bytes)', path);
+      }
+
+      // Decode the image successfully. Fail safely if the image cannot be decoded.
+      final decoded = img.decodeImage(bytes);
+      if (decoded == null) {
+        throw Exception('Failed to decode scanned image at $path');
+      }
+
+      // Preserve scanned orientation by baking EXIF rotation.
+      final orientedImage = img.bakeOrientation(decoded);
+
+      // Downscale to target width (max 1200px) and quality 75% for efficiency.
+      img.Image resized = orientedImage;
+      if (orientedImage.width > 1200) {
+        resized = img.copyResize(orientedImage, width: 1200);
+      }
+      final compressedBytes = img.encodeJpg(resized, quality: 75);
+
       final image = pw.MemoryImage(Uint8List.fromList(compressedBytes));
 
       pdf.addPage(
@@ -49,7 +81,14 @@ class ScanDocumentUseCase {
     final tempDir = await getTemporaryDirectory();
     final tempPath = p.join(tempDir.path, 'temp_scan_${_uuid.v4()}.pdf');
     final tempFile = File(tempPath);
-    await tempFile.writeAsBytes(await pdf.save());
+
+    final pdfBytes = await pdf.save();
+    await tempFile.writeAsBytes(pdfBytes, flush: true);
+
+    // Verify the temporary PDF file was written completely
+    if (!await tempFile.exists() || await tempFile.length() == 0) {
+      throw FileSystemException('Temporary PDF was not written successfully or is empty', tempPath);
+    }
 
     return tempPath;
   }
@@ -126,26 +165,7 @@ class ScanDocumentUseCase {
     return document;
   }
 
-  /// Compresses a photo to target ~150-250 DPI. Downscales width to 1200px max and Jpeg quality 75%.
-  Future<List<int>> _compressImage(String path) async {
-    final file = File(path);
-    final bytes = await file.readAsBytes();
-    try {
-      final decoded = img.decodeImage(bytes);
-      if (decoded == null) return bytes;
-
-      img.Image resized = decoded;
-      // Downscale if image is high resolution (wider than 1200 pixels)
-      if (decoded.width > 1200) {
-        resized = img.copyResize(decoded, width: 1200);
-      }
-
-      // Encode back to JPEG with quality parameter set to 75%
-      return img.encodeJpg(resized, quality: 75);
-    } catch (_) {
-      return bytes; // Safe fallback to original bytes if decoding fails
-    }
-  }
+  // Note: Image processing logic is now inline within generateTempPdf for robustness.
 
   /// Automatically appends sequential numbering (e.g. `(2)`, `(3)`) to prevent title duplicates
   String _getDeduplicatedTitle(List<Document> documents, String baseTitle) {

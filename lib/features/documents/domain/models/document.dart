@@ -24,6 +24,8 @@ class Document with _$Document {
     required DateTime createdAt,
     required DateTime updatedAt,
     @Default(1) int lastViewedPage,
+    @Default(false) bool isDeleted,
+    DateTime? deletedAt,
   }) = _Document;
 
   factory Document.fromJson(Map<String, dynamic> json) => _$DocumentFromJson(json);

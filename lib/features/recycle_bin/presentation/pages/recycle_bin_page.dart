@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../../core/widgets/responsive_scaffold.dart';
 
 class RecycleBinPage extends StatelessWidget {
@@ -11,19 +12,20 @@ class RecycleBinPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    final theme = Theme.of(context);
 
     return ResponsiveScaffold(
       currentPath: AppRouter.recycleBinPath,
-      title: Text(localizations.navRecycleBin),
-      body: Center(
-        child: Text(
-          localizations.navRecycleBin,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
-          ),
+      title: Text(
+        localizations.navRecycleBin,
+        style: const TextStyle(
+          fontSize: 34,
+          fontWeight: FontWeight.bold,
+          letterSpacing: -1.0,
         ),
+      ),
+      body: const AppEmptyState(
+        icon: Icons.delete_outline_rounded,
+        message: 'Your Recycle Bin is empty.\nDeleted documents are permanently cleaned up.',
       ),
     );
   }

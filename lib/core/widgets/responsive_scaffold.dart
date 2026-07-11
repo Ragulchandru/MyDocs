@@ -8,20 +8,27 @@ class ResponsiveScaffold extends StatelessWidget {
   final Widget? title;
   final String currentPath;
   final Widget? floatingActionButton;
+  final List<Widget>? actions;
 
   const ResponsiveScaffold({
     required this.body,
     required this.currentPath,
     this.title,
     this.floatingActionButton,
+    this.actions,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Determine screen width for responsive layout
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isTablet = screenWidth >= 600;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    const appBarColor = Colors.transparent;
+    final iconColor = isDark ? const Color(0xFF0A84FF) : const Color(0xFF007AFF);
+    final dividerColor = isDark ? const Color(0xFF3A3A3C) : const Color(0xFFC7C7CC);
 
     if (isTablet) {
       return Scaffold(
@@ -32,13 +39,21 @@ class ResponsiveScaffold extends StatelessWidget {
                 currentPath: currentPath,
                 isPermanent: true,
               ),
-              const VerticalDivider(width: 1, thickness: 1),
+              VerticalDivider(
+                width: 1,
+                thickness: 1,
+                color: dividerColor,
+              ),
               Expanded(
                 child: Scaffold(
                   appBar: title != null
                       ? AppBar(
                           title: title,
                           automaticallyImplyLeading: false, // No hamburger menu needed on tablet
+                          backgroundColor: appBarColor,
+                          elevation: 0,
+                          iconTheme: IconThemeData(color: iconColor),
+                          actions: actions,
                         )
                       : null,
                   body: body,
@@ -53,6 +68,10 @@ class ResponsiveScaffold extends StatelessWidget {
       return Scaffold(
         appBar: AppBar(
           title: title,
+          backgroundColor: appBarColor,
+          elevation: 0,
+          iconTheme: IconThemeData(color: iconColor),
+          actions: actions,
         ),
         drawer: AppNavigationDrawer(
           currentPath: currentPath,

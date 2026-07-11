@@ -13,7 +13,7 @@ class DocumentScannerServiceImpl implements DocumentScannerService {
     final scanner = DocumentScanner(
       options: DocumentScannerOptions(
         documentFormats: const {DocumentFormat.jpeg},
-        mode: ScannerMode.full, // Autocrops and enhances the image
+        mode: ScannerMode.base, // Raw crop only, without forced ML auto-enhancements
         isGalleryImport: false, // Disallows gallery import for standard camera scanning
         pageLimit: 1, // Enforces single page scan
       ),

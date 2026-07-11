@@ -34,6 +34,14 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
     });
   }
 
+  @override
+  void dispose() {
+    try {
+      ref.read(scanSessionProvider.notifier).clearSession();
+    } catch (_) {}
+    super.dispose();
+  }
+
   Future<bool> _showDiscardDialog() async {
     final localizations = AppLocalizations.of(context);
     final theme = Theme.of(context);
@@ -177,14 +185,20 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
       _isGeneratingPdf = true;
     });
 
+    String? tempPdfPath;
     try {
       final imagePaths = scannedPages.map((f) => f.path).toList();
       final useCase = ref.read(scanDocumentUseCaseProvider);
       
       // 1. Generate the PDF inside temporary file storage
-      final tempPdfPath = await useCase.generateTempPdf(imagePaths);
+      tempPdfPath = await useCase.generateTempPdf(imagePaths);
 
-      if (!mounted) return;
+      if (!mounted) {
+        try {
+          File(tempPdfPath).deleteSync();
+        } catch (_) {}
+        return;
+      }
       // 2. Redirect to PDF Pre-save preview screen
       context.push(
         AppRouter.pdfPreSaveViewerPath,
@@ -195,6 +209,14 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
       );
     } catch (e) {
       _showSnackBar(e.toString());
+      if (tempPdfPath != null) {
+        try {
+          final file = File(tempPdfPath);
+          if (file.existsSync()) {
+            file.deleteSync();
+          }
+        } catch (_) {}
+      }
     } finally {
       if (mounted) {
         setState(() {

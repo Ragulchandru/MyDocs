@@ -25,13 +25,15 @@ class DocumentAdapter extends TypeAdapter<Document> {
       createdAt: fields[7] as DateTime,
       updatedAt: fields[8] as DateTime,
       lastViewedPage: (fields[9] as int?) ?? 1,
+      isDeleted: (fields[10] as bool?) ?? false,
+      deletedAt: fields[11] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Document obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -51,6 +53,10 @@ class DocumentAdapter extends TypeAdapter<Document> {
       ..writeByte(8)
       ..write(obj.updatedAt)
       ..writeByte(9)
-      ..write(obj.lastViewedPage);
+      ..write(obj.lastViewedPage)
+      ..writeByte(10)
+      ..write(obj.isDeleted)
+      ..writeByte(11)
+      ..write(obj.deletedAt);
   }
 }

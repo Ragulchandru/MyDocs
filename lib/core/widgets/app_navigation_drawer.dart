@@ -1,8 +1,8 @@
 // lib/core/widgets/app_navigation_drawer.dart
 
 import 'package:flutter/material.dart';
-import '../localization/app_localizations.dart';
 import 'package:go_router/go_router.dart';
+import '../localization/app_localizations.dart';
 import '../router/app_router.dart';
 
 class AppNavigationDrawer extends StatelessWidget {
@@ -66,91 +66,134 @@ class AppNavigationDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    // Padding helper to respect large touch targets (48dp height minimum for content)
-    return NavigationDrawer(
-      selectedIndex: _getSelectedIndex(),
-      onDestinationSelected: (index) => _onDestinationSelected(context, index),
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(28, 28, 28, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.description_rounded,
-                    size: 32,
-                    color: theme.colorScheme.primary,
+    final groupedBgColor = isDark ? const Color(0xFF111111) : const Color(0xFFF7F7F9);
+    final primaryTextColor = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF000000);
+    final secondaryTextColor = isDark ? const Color(0xFFAEAEB2) : const Color(0xFF6D6D72);
+    final activeBgColor = isDark ? const Color(0x1F0A84FF) : const Color(0x1F007AFF); // 12% opacity
+    final activeColor = isDark ? const Color(0xFF0A84FF) : const Color(0xFF007AFF);
+
+    Widget item(int index, IconData icon, String label) {
+      final isSelected = _getSelectedIndex() == index;
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+        child: InkWell(
+          onTap: () => _onDestinationSelected(context, index),
+          borderRadius: BorderRadius.circular(20),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: isSelected ? activeBgColor : Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  color: isSelected ? activeColor : secondaryTextColor,
+                  size: 24,
+                ),
+                const SizedBox(width: 16),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? activeColor : primaryTextColor,
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    localizations.appTitle,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: 290,
+      decoration: BoxDecoration(
+        color: groupedBgColor,
+      ),
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Apple-style Profile Area
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: activeColor,
+                    child: const Text(
+                      'MD',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          localizations.appTitle,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: primaryTextColor,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Local User',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: secondaryTextColor,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(width: 8),
-              Text(
+            ),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8),
+              child: Text(
                 localizations.appTagline,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontSize: 14,
+                style: TextStyle(
+                  color: secondaryTextColor,
+                  fontSize: 13,
+                  height: 1.3,
                 ),
               ),
-            ],
-          ),
-        ),
-        const Divider(indent: 28, endIndent: 28),
-        NavigationDrawerDestination(
-          icon: const Icon(Icons.home_outlined),
-          selectedIcon: const Icon(Icons.home_rounded),
-          label: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text(
-              localizations.navHome,
-              style: const TextStyle(fontSize: 16),
             ),
-          ),
-        ),
-        NavigationDrawerDestination(
-          icon: const Icon(Icons.folder_outlined),
-          selectedIcon: const Icon(Icons.folder_rounded),
-          label: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text(
-              localizations.navFolders,
-              style: const TextStyle(fontSize: 16),
+            const SizedBox(height: 12),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.0),
+              child: Divider(),
             ),
-          ),
+            const SizedBox(height: 16),
+
+            // Navigation menu entries
+            item(0, Icons.home_rounded, localizations.navHome),
+            item(1, Icons.folder_rounded, localizations.navFolders),
+            item(2, Icons.delete_rounded, localizations.navRecycleBin),
+            item(3, Icons.settings_rounded, localizations.navSettings),
+          ],
         ),
-        NavigationDrawerDestination(
-          icon: const Icon(Icons.delete_outline_rounded),
-          selectedIcon: const Icon(Icons.delete_rounded),
-          label: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text(
-              localizations.navRecycleBin,
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-        NavigationDrawerDestination(
-          icon: const Icon(Icons.settings_outlined),
-          selectedIcon: const Icon(Icons.settings_rounded),
-          label: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text(
-              localizations.navSettings,
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

@@ -32,6 +32,7 @@ dependencies:
   printing: ^5.14.3
   pdfx: ^2.9.2
   wakelock_plus: ^1.2.8
+  share_plus: ^10.0.2
 
   # Formatting & Parsing
   intl: ^0.20.2

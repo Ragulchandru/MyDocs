@@ -34,6 +34,7 @@ class _ImageViewerPageState extends State<ImageViewerPage> with SingleTickerProv
   late Matrix4 _fitMatrix;
   double _imageWidth = 0.0;
   double _imageHeight = 0.0;
+  double _fitScale = 1.0;
 
   bool _isLoading = true;
   String? _errorMessage;
@@ -140,6 +141,7 @@ class _ImageViewerPageState extends State<ImageViewerPage> with SingleTickerProv
         ..scaleByDouble(fitScale, fitScale, 1.0, 1.0);
 
       _transformationController.value = _fitMatrix;
+      _fitScale = fitScale;
 
       setState(() {
         _isLoading = false;
@@ -266,9 +268,9 @@ class _ImageViewerPageState extends State<ImageViewerPage> with SingleTickerProv
           child: Center(
             child: InteractiveViewer(
               transformationController: _transformationController,
-              minScale: 0.5,
-              maxScale: 6.0,
-              boundaryMargin: const EdgeInsets.all(100),
+              minScale: _fitScale,
+              maxScale: _fitScale * 6.0,
+              boundaryMargin: const EdgeInsets.all(32.0),
               constrained: false, // Allows image to be sized independently of constraints
               child: SizedBox(
                 width: _imageWidth,

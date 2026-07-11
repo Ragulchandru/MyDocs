@@ -29,7 +29,11 @@ class AppRouter {
       ),
       GoRoute(
         path: foldersPath,
-        builder: (context, state) => const FoldersPage(),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final folderType = extra?['folderType'] as String?;
+          return FoldersPage(initialFolderType: folderType);
+        },
       ),
       GoRoute(
         path: recycleBinPath,
@@ -44,7 +48,7 @@ class AppRouter {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>;
           return PdfViewerPage(
-            documentId: extra['documentId'] as String,
+            documentId: extra['documentId'] as String?,
             filePath: extra['filePath'] as String,
             title: extra['title'] as String,
           );
