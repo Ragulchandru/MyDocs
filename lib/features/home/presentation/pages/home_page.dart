@@ -719,16 +719,24 @@ class _HomePageState extends ConsumerState<HomePage> {
                   ),
                 );
               },
-              loading: () => const SliverFillRemaining(
-                hasScrollBody: false,
-                child: Center(child: CircularProgressIndicator()),
+              loading: () => const CustomScrollView(
+                slivers: [
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                ],
               ),
-              error: (err, stack) => SliverFillRemaining(
-                hasScrollBody: false,
-                child: AppEmptyState(
-                  icon: Icons.error_outline_rounded,
-                  message: localizations.errorGeneric(err.toString()),
-                ),
+              error: (err, stack) => CustomScrollView(
+                slivers: [
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: AppEmptyState(
+                      icon: Icons.error_outline_rounded,
+                      message: localizations.errorGeneric(err.toString()),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
