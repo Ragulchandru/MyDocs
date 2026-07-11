@@ -276,4 +276,17 @@ class AppLocalizationsTa extends AppLocalizations {
   String scannerUnexpectedError(String message) {
     return 'எதிர்பாராத ஸ்கேனர் பிழை ஏற்பட்டது: $message';
   }
+
+  @override
+  String get scannerUnavailableTitle => 'ஸ்கேனர் கிடைக்கவில்லை';
+
+  @override
+  String get scannerUnavailableMessage =>
+      'இந்த சாதனத்தில் மேம்பட்ட ஆவண ஸ்கேனர் கிடைக்கவில்லை. அடிப்படை கேமரா ஸ்கேனரைப் பயன்படுத்தி நீங்கள் தொடரலாம்.';
+
+  @override
+  String get useCamera => 'கேமராவைப் பயன்படுத்துக';
+
+  @override
+  String get cameraCaptureFailed => 'ஆவண புகைப்படத்தை எடுக்க முடியவில்லை.';
 }

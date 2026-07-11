@@ -101,7 +101,12 @@ class _HomePageState extends ConsumerState<HomePage> {
       // Dismiss UI loading state right before native scanner takes over (Priority 9)
       setState(() => _isScanning = false);
 
-      final result = await scannerService.scanDocument();
+      final result = await scannerService.scanDocument(
+        onFallbackPrompt: () async {
+          if (!mounted) return false;
+          return await ScannerErrorHandler.showFallbackPrompt(context, localizations);
+        },
+      );
 
       if (kDebugMode && stopwatch != null) {
         debugPrint('[ScanTiming] Google ML Kit native scanner result returned to Flutter: ${stopwatch.elapsedMilliseconds} ms');

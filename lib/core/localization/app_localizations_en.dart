@@ -270,4 +270,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String scannerUnexpectedError(String message) {
     return 'An unexpected scanner error occurred: $message';
   }
+
+  @override
+  String get scannerUnavailableTitle => 'Scanner unavailable';
+
+  @override
+  String get scannerUnavailableMessage =>
+      'The advanced document scanner is not available on this device. You can continue using the basic camera scanner.';
+
+  @override
+  String get useCamera => 'Use Camera';
+
+  @override
+  String get cameraCaptureFailed => 'Unable to capture the document photo.';
 }

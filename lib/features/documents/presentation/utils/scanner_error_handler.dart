@@ -85,4 +85,34 @@ class ScannerErrorHandler {
       ),
     );
   }
+
+  /// Displays a dialog prompting the user to decide whether to fall back to the basic camera scanner
+  /// when the advanced Google ML Kit document scanner fails or is unavailable.
+  static Future<bool> showFallbackPrompt(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) async {
+    if (!context.mounted) return false;
+
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(localizations.scannerUnavailableTitle),
+        content: Text(localizations.scannerUnavailableMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(localizations.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(localizations.useCamera),
+          ),
+        ],
+      ),
+    );
+
+    return result ?? false;
+  }
 }

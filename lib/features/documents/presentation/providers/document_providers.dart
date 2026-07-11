@@ -4,7 +4,9 @@ import 'package:hive/hive.dart';
 import '../../../../core/storage/storage_constants.dart';
 import '../../../../core/storage/storage_strategy.dart';
 import '../../data/repositories/document_repository_impl.dart';
-import '../../data/services/document_scanner_service_impl.dart';
+import '../../data/services/google_mlkit_document_scanner.dart';
+import '../../data/services/basic_camera_scanner.dart';
+import '../../data/services/document_scanner_coordinator.dart';
 import '../../domain/models/document.dart';
 import '../../domain/repositories/document_repository.dart';
 import '../../domain/services/document_scanner_service.dart';
@@ -60,7 +62,10 @@ final deletedDocumentListProvider = StreamProvider<List<Document>>((ref) {
 
 /// Exposes the document scanner service.
 final documentScannerServiceProvider = Provider<DocumentScannerService>((ref) {
-  return DocumentScannerServiceImpl();
+  return DocumentScannerCoordinator(
+    GoogleMlKitDocumentScanner(),
+    BasicCameraScanner(),
+  );
 });
 
 /// Exposes the scan document use case.

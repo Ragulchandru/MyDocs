@@ -14,12 +14,14 @@ class ScannerResult {
   final File? file;
   final String? errorMessage;
   final String? errorCode;
+  final dynamic details;
 
   ScannerResult({
     required this.status,
     this.file,
     this.errorMessage,
     this.errorCode,
+    this.details,
   });
 }
 
@@ -27,5 +29,5 @@ class ScannerResult {
 /// Decouples the application code from specific scanner packages.
 abstract class DocumentScannerService {
   /// Launches the document scanning flow. Returns the structured [ScannerResult].
-  Future<ScannerResult> scanDocument();
+  Future<ScannerResult> scanDocument({Future<bool> Function()? onFallbackPrompt});
 }

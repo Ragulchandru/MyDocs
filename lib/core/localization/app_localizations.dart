@@ -571,6 +571,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'An unexpected scanner error occurred: {message}'**
   String scannerUnexpectedError(String message);
+
+  /// No description provided for @scannerUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanner unavailable'**
+  String get scannerUnavailableTitle;
+
+  /// No description provided for @scannerUnavailableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The advanced document scanner is not available on this device. You can continue using the basic camera scanner.'**
+  String get scannerUnavailableMessage;
+
+  /// No description provided for @useCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Camera'**
+  String get useCamera;
+
+  /// No description provided for @cameraCaptureFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to capture the document photo.'**
+  String get cameraCaptureFailed;
 }
 
 class _AppLocalizationsDelegate
