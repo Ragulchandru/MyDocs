@@ -155,4 +155,69 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get okButton => 'சரி';
+
+  @override
+  String selectedCount(int count) {
+    return '$count தேர்ந்தெடுக்கப்பட்டது';
+  }
+
+  @override
+  String get selectAll => 'அனைத்தையும் தேர்ந்தெடு';
+
+  @override
+  String get moveToRecycleBin => 'குப்பைத் தொட்டிக்கு நகர்த்து';
+
+  @override
+  String get moveToRecycleBinTitle => 'குப்பைத் தொட்டிக்கு நகர்த்தவா?';
+
+  @override
+  String get moveToRecycleBinMessage => 'இந்த ஆவணத்தை பின்னர் மீட்டெடுக்கலாம்.';
+
+  @override
+  String get moveToRecycleBinMessageMany =>
+      'இந்த ஆவணங்களை பின்னர் மீட்டெடுக்கலாம்.';
+
+  @override
+  String get restore => 'மீட்டெடு';
+
+  @override
+  String get deletePermanently => 'நிரந்தரமாக நீக்கு';
+
+  @override
+  String get deletePermanentlyTitle => 'நிரந்தரமாக நீக்கவா?';
+
+  @override
+  String get deletePermanentlyMessage => 'இந்தச் செயலை மாற்ற முடியாது.';
+
+  @override
+  String get preparingDocument => 'ஆவணம் தயாரிக்கப்படுகிறது...';
+
+  @override
+  String get preparingPages => 'பக்கங்கள் தயாரிக்கப்படுகின்றன...';
+
+  @override
+  String get savingDocument => 'ஆவணம் சேமிக்கப்படுகிறது...';
+
+  @override
+  String get pleaseWait =>
+      'தயவுசெய்து காத்திருக்கவும். இதற்கு ஒரு நிமிடம் ஆகலாம்.';
+
+  @override
+  String get processingScan => 'ஸ்கேன் செயலாக்கப்படுகிறது...';
+
+  @override
+  String get share => 'பகிர்க';
+
+  @override
+  String get shareSelected => 'தேர்ந்தெடுக்கப்பட்டதை பகிர்க';
+
+  @override
+  String get noValidFilesToShare =>
+      'பகிர்வதற்கு சரியான கோப்புகள் எதுவும் இல்லை.';
+
+  @override
+  String get preview => 'முன்னோட்டம்';
+
+  @override
+  String get preparingPreview => 'முன்னோட்டம் தயாரிக்கப்படுகிறது...';
 }

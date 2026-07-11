@@ -12,6 +12,7 @@ class AppCard extends StatefulWidget {
   final EdgeInsetsGeometry? padding;
   final Color? color;
   final double radius;
+  final Color? borderColor;
 
   const AppCard({
     super.key,
@@ -20,6 +21,7 @@ class AppCard extends StatefulWidget {
     this.padding,
     this.color,
     this.radius = 24.0,
+    this.borderColor,
   });
 
   @override
@@ -33,7 +35,7 @@ class _AppCardState extends State<AppCard> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = widget.color ?? (isDark ? const Color(0xFF1C1C1E) : const Color(0xFFFFFFFF));
-    final borderColor = isDark ? const Color(0xFF3A3A3C) : const Color(0xFFD1D1D6);
+    final borderColor = widget.borderColor ?? (isDark ? const Color(0xFF3A3A3C) : const Color(0xFFD1D1D6));
     final shadowColor = Colors.black.withValues(alpha: isDark ? 0.25 : 0.05);
     final double blurRadius = isDark ? 24.0 : 20.0;
     final Offset offset = isDark ? const Offset(0, 10) : const Offset(0, 8);

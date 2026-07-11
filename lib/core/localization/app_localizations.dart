@@ -367,6 +367,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'OK'**
   String get okButton;
+
+  /// No description provided for @selectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String selectedCount(int count);
+
+  /// No description provided for @selectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select All'**
+  String get selectAll;
+
+  /// No description provided for @moveToRecycleBin.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to Recycle Bin'**
+  String get moveToRecycleBin;
+
+  /// No description provided for @moveToRecycleBinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to Recycle Bin?'**
+  String get moveToRecycleBinTitle;
+
+  /// No description provided for @moveToRecycleBinMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This document can be restored later.'**
+  String get moveToRecycleBinMessage;
+
+  /// No description provided for @moveToRecycleBinMessageMany.
+  ///
+  /// In en, this message translates to:
+  /// **'These documents can be restored later.'**
+  String get moveToRecycleBinMessageMany;
+
+  /// No description provided for @restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restore;
+
+  /// No description provided for @deletePermanently.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Permanently'**
+  String get deletePermanently;
+
+  /// No description provided for @deletePermanentlyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete permanently?'**
+  String get deletePermanentlyTitle;
+
+  /// No description provided for @deletePermanentlyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone.'**
+  String get deletePermanentlyMessage;
+
+  /// No description provided for @preparingDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing document...'**
+  String get preparingDocument;
+
+  /// No description provided for @preparingPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing pages...'**
+  String get preparingPages;
+
+  /// No description provided for @savingDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving document...'**
+  String get savingDocument;
+
+  /// No description provided for @pleaseWait.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait. This may take a moment.'**
+  String get pleaseWait;
+
+  /// No description provided for @processingScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing scan...'**
+  String get processingScan;
+
+  /// No description provided for @share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// No description provided for @shareSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Selected'**
+  String get shareSelected;
+
+  /// No description provided for @noValidFilesToShare.
+  ///
+  /// In en, this message translates to:
+  /// **'No valid files found to share.'**
+  String get noValidFilesToShare;
+
+  /// No description provided for @preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get preview;
+
+  /// No description provided for @preparingPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing preview...'**
+  String get preparingPreview;
 }
 
 class _AppLocalizationsDelegate

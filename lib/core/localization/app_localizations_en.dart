@@ -152,4 +152,67 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get okButton => 'OK';
+
+  @override
+  String selectedCount(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get selectAll => 'Select All';
+
+  @override
+  String get moveToRecycleBin => 'Move to Recycle Bin';
+
+  @override
+  String get moveToRecycleBinTitle => 'Move to Recycle Bin?';
+
+  @override
+  String get moveToRecycleBinMessage => 'This document can be restored later.';
+
+  @override
+  String get moveToRecycleBinMessageMany =>
+      'These documents can be restored later.';
+
+  @override
+  String get restore => 'Restore';
+
+  @override
+  String get deletePermanently => 'Delete Permanently';
+
+  @override
+  String get deletePermanentlyTitle => 'Delete permanently?';
+
+  @override
+  String get deletePermanentlyMessage => 'This action cannot be undone.';
+
+  @override
+  String get preparingDocument => 'Preparing document...';
+
+  @override
+  String get preparingPages => 'Preparing pages...';
+
+  @override
+  String get savingDocument => 'Saving document...';
+
+  @override
+  String get pleaseWait => 'Please wait. This may take a moment.';
+
+  @override
+  String get processingScan => 'Processing scan...';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get shareSelected => 'Share Selected';
+
+  @override
+  String get noValidFilesToShare => 'No valid files found to share.';
+
+  @override
+  String get preview => 'Preview';
+
+  @override
+  String get preparingPreview => 'Preparing preview...';
 }

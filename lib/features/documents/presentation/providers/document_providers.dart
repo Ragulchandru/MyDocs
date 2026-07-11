@@ -37,10 +37,26 @@ final getDocumentsUseCaseProvider = Provider<GetDocumentsUseCase>((ref) {
   return GetDocumentsUseCase(repository);
 });
 
-/// Exposes a stream of documents, automatically refreshed upon Hive updates.
+/// Exposes a stream of active (non-deleted) documents, automatically refreshed upon Hive updates.
 final documentListProvider = StreamProvider<List<Document>>((ref) {
   final useCase = ref.watch(getDocumentsUseCaseProvider);
-  return useCase.execute();
+  return useCase.execute().map((list) {
+    return list.where((doc) => !doc.isDeleted).toList();
+  });
+});
+
+/// Exposes a stream of soft-deleted documents, sorted by deletedAt descending.
+final deletedDocumentListProvider = StreamProvider<List<Document>>((ref) {
+  final repository = ref.watch(documentRepositoryProvider);
+  return repository.watchDocuments().map((list) {
+    final deleted = list.where((doc) => doc.isDeleted).toList();
+    deleted.sort((a, b) {
+      final aTime = a.deletedAt ?? a.updatedAt;
+      final bTime = b.deletedAt ?? b.updatedAt;
+      return bTime.compareTo(aTime);
+    });
+    return deleted;
+  });
 });
 
 /// Exposes the document scanner service.
@@ -54,3 +70,69 @@ final scanDocumentUseCaseProvider = Provider<ScanDocumentUseCase>((ref) {
   final storageStrategy = ref.watch(storageStrategyProvider);
   return ScanDocumentUseCase(repository, storageStrategy);
 });
+
+/// Exposes the multi-select selection state notifier and provider.
+final selectionProvider = StateNotifierProvider<SelectionNotifier, Set<String>>((ref) {
+  return SelectionNotifier();
+});
+
+class SelectionNotifier extends StateNotifier<Set<String>> {
+  SelectionNotifier() : super(const {});
+
+  void select(String id) {
+    state = {...state, id};
+  }
+
+  void deselect(String id) {
+    state = {...state}..remove(id);
+  }
+
+  void toggle(String id) {
+    if (state.contains(id)) {
+      deselect(id);
+    } else {
+      select(id);
+    }
+  }
+
+  void selectAll(Iterable<String> ids) {
+    state = Set<String>.from(ids);
+  }
+
+  void clearSelection() {
+    state = const {};
+  }
+}
+
+/// Exposes the multi-select selection state for the Recycle Bin.
+final recycleBinSelectionProvider = StateNotifierProvider<RecycleBinSelectionNotifier, Set<String>>((ref) {
+  return RecycleBinSelectionNotifier();
+});
+
+class RecycleBinSelectionNotifier extends StateNotifier<Set<String>> {
+  RecycleBinSelectionNotifier() : super(const {});
+
+  void select(String id) {
+    state = {...state, id};
+  }
+
+  void deselect(String id) {
+    state = {...state}..remove(id);
+  }
+
+  void toggle(String id) {
+    if (state.contains(id)) {
+      deselect(id);
+    } else {
+      select(id);
+    }
+  }
+
+  void selectAll(Iterable<String> ids) {
+    state = Set<String>.from(ids);
+  }
+
+  void clearSelection() {
+    state = const {};
+  }
+}

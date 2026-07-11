@@ -8,7 +8,6 @@ import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/documents/presentation/pages/pdf_viewer_page.dart';
 import '../../features/documents/presentation/pages/image_viewer_page.dart';
 import '../../features/documents/presentation/pages/scan_session_page.dart';
-import '../../features/documents/presentation/pages/pdf_pre_save_viewer_page.dart';
 
 class AppRouter {
   static const String homePath = '/';
@@ -18,7 +17,6 @@ class AppRouter {
   static const String pdfViewerPath = '/pdf-viewer';
   static const String imageViewerPath = '/image-viewer';
   static const String scanSessionPath = '/scan-session';
-  static const String pdfPreSaveViewerPath = '/pdf-pre-save-viewer';
 
   static final GoRouter router = GoRouter(
     initialLocation: homePath,
@@ -70,16 +68,6 @@ class AppRouter {
         builder: (context, state) {
           final initialPagePath = state.extra as String;
           return ScanSessionPage(initialPagePath: initialPagePath);
-        },
-      ),
-      GoRoute(
-        path: pdfPreSaveViewerPath,
-        builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>;
-          return PdfPreSaveViewerPage(
-            tempPdfPath: extra['tempPdfPath'] as String,
-            documentName: extra['documentName'] as String,
-          );
         },
       ),
     ],

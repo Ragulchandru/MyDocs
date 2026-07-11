@@ -60,5 +60,32 @@
       }
     }
   },
-  "okButton": "சரி"
+  "okButton": "சரி",
+  "selectedCount": "{count} தேர்ந்தெடுக்கப்பட்டது",
+  "@selectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "selectAll": "அனைத்தையும் தேர்ந்தெடு",
+  "moveToRecycleBin": "குப்பைத் தொட்டிக்கு நகர்த்து",
+  "moveToRecycleBinTitle": "குப்பைத் தொட்டிக்கு நகர்த்தவா?",
+  "moveToRecycleBinMessage": "இந்த ஆவணத்தை பின்னர் மீட்டெடுக்கலாம்.",
+  "moveToRecycleBinMessageMany": "இந்த ஆவணங்களை பின்னர் மீட்டெடுக்கலாம்.",
+  "restore": "மீட்டெடு",
+  "deletePermanently": "நிரந்தரமாக நீக்கு",
+  "deletePermanentlyTitle": "நிரந்தரமாக நீக்கவா?",
+  "deletePermanentlyMessage": "இந்தச் செயலை மாற்ற முடியாது.",
+  "preparingDocument": "ஆவணம் தயாரிக்கப்படுகிறது...",
+  "preparingPages": "பக்கங்கள் தயாரிக்கப்படுகின்றன...",
+  "savingDocument": "ஆவணம் சேமிக்கப்படுகிறது...",
+  "pleaseWait": "தயவுசெய்து காத்திருக்கவும். இதற்கு ஒரு நிமிடம் ஆகலாம்.",
+  "processingScan": "ஸ்கேன் செயலாக்கப்படுகிறது...",
+  "share": "பகிர்க",
+  "shareSelected": "தேர்ந்தெடுக்கப்பட்டதை பகிர்க",
+  "noValidFilesToShare": "பகிர்வதற்கு சரியான கோப்புகள் எதுவும் இல்லை.",
+  "preview": "முன்னோட்டம்",
+  "preparingPreview": "முன்னோட்டம் தயாரிக்கப்படுகிறது..."
 }

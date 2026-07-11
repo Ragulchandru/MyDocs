@@ -60,5 +60,32 @@
       }
     }
   },
-  "okButton": "OK"
+  "okButton": "OK",
+  "selectedCount": "{count} selected",
+  "@selectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "selectAll": "Select All",
+  "moveToRecycleBin": "Move to Recycle Bin",
+  "moveToRecycleBinTitle": "Move to Recycle Bin?",
+  "moveToRecycleBinMessage": "This document can be restored later.",
+  "moveToRecycleBinMessageMany": "These documents can be restored later.",
+  "restore": "Restore",
+  "deletePermanently": "Delete Permanently",
+  "deletePermanentlyTitle": "Delete permanently?",
+  "deletePermanentlyMessage": "This action cannot be undone.",
+  "preparingDocument": "Preparing document...",
+  "preparingPages": "Preparing pages...",
+  "savingDocument": "Saving document...",
+  "pleaseWait": "Please wait. This may take a moment.",
+  "processingScan": "Processing scan...",
+  "share": "Share",
+  "shareSelected": "Share Selected",
+  "noValidFilesToShare": "No valid files found to share.",
+  "preview": "Preview",
+  "preparingPreview": "Preparing preview..."
 }

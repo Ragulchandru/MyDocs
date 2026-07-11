@@ -4,8 +4,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/foundation.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/router/app_router.dart';
+import '../../domain/usecases/scan_document_usecase.dart';
 import '../providers/document_providers.dart';
 import '../providers/scan_session_provider.dart';
 
@@ -23,6 +25,9 @@ class ScanSessionPage extends ConsumerStatefulWidget {
 
 class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
   bool _isGeneratingPdf = false;
+  bool _isScanning = false;
+  String? _previewPdfPath;
+  bool _isPreparingPreview = false;
 
   @override
   void initState() {
@@ -36,6 +41,14 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
 
   @override
   void dispose() {
+    if (_previewPdfPath != null) {
+      try {
+        final f = File(_previewPdfPath!);
+        if (f.existsSync()) {
+          f.deleteSync();
+        }
+      } catch (_) {}
+    }
     try {
       ref.read(scanSessionProvider.notifier).clearSession();
     } catch (_) {}
@@ -79,6 +92,15 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
       final shouldDiscard = await _showDiscardDialog();
       if (!shouldDiscard) return;
     }
+    if (_previewPdfPath != null) {
+      try {
+        final f = File(_previewPdfPath!);
+        if (f.existsSync()) {
+          f.deleteSync();
+        }
+      } catch (_) {}
+      _previewPdfPath = null;
+    }
     ref.read(scanSessionProvider.notifier).clearSession();
     if (mounted) {
       context.pop();
@@ -86,28 +108,80 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
   }
 
   Future<void> _addPage() async {
+    if (_isScanning || _isGeneratingPdf || _isPreparingPreview) return;
     final localizations = AppLocalizations.of(context);
+    setState(() => _isScanning = true);
+
+    Stopwatch? stopwatch;
+    if (kDebugMode) {
+      stopwatch = Stopwatch()..start();
+      debugPrint('[ScanTiming] _addPage: Before launching Google ML Kit scanner');
+    }
+
     try {
       final scannerService = ref.read(documentScannerServiceProvider);
+      if (kDebugMode) debugPrint('[ScanTiming] _addPage: Scanner launch initiated');
+
       final File? scannedFile = await scannerService.scanDocument();
+
+      if (kDebugMode && stopwatch != null) {
+        debugPrint('[ScanTiming] _addPage: Google ML Kit native scanner result returned to Flutter: ${stopwatch.elapsedMilliseconds} ms');
+      }
+
       if (scannedFile != null) {
+        if (kDebugMode && stopwatch != null) stopwatch.reset();
+        final fileExists = await scannedFile.exists();
+        final fileLength = fileExists ? await scannedFile.length() : 0;
+        if (kDebugMode && stopwatch != null) {
+          debugPrint('[ScanTiming] _addPage: File existence/readability validation: ${stopwatch.elapsedMilliseconds} ms (size: $fileLength bytes)');
+        }
         ref.read(scanSessionProvider.notifier).addPage(scannedFile);
       }
     } catch (_) {
       _showSnackBar(localizations.errorCameraPermission);
+    } finally {
+      if (mounted) {
+        setState(() => _isScanning = false);
+      }
     }
   }
 
   Future<void> _replacePage(int index) async {
+    if (_isScanning || _isGeneratingPdf || _isPreparingPreview) return;
     final localizations = AppLocalizations.of(context);
+    setState(() => _isScanning = true);
+
+    Stopwatch? stopwatch;
+    if (kDebugMode) {
+      stopwatch = Stopwatch()..start();
+      debugPrint('[ScanTiming] _replacePage: Before launching Google ML Kit scanner');
+    }
+
     try {
       final scannerService = ref.read(documentScannerServiceProvider);
+      if (kDebugMode) debugPrint('[ScanTiming] _replacePage: Scanner launch initiated');
+
       final File? scannedFile = await scannerService.scanDocument();
+
+      if (kDebugMode && stopwatch != null) {
+        debugPrint('[ScanTiming] _replacePage: Google ML Kit native scanner result returned to Flutter: ${stopwatch.elapsedMilliseconds} ms');
+      }
+
       if (scannedFile != null) {
+        if (kDebugMode && stopwatch != null) stopwatch.reset();
+        final fileExists = await scannedFile.exists();
+        final fileLength = fileExists ? await scannedFile.length() : 0;
+        if (kDebugMode && stopwatch != null) {
+          debugPrint('[ScanTiming] _replacePage: File existence/readability validation: ${stopwatch.elapsedMilliseconds} ms (size: $fileLength bytes)');
+        }
         ref.read(scanSessionProvider.notifier).replacePage(index, scannedFile);
       }
     } catch (_) {
       _showSnackBar(localizations.errorCameraPermission);
+    } finally {
+      if (mounted) {
+        setState(() => _isScanning = false);
+      }
     }
   }
 
@@ -174,6 +248,70 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
     );
   }
 
+  Future<void> _showPreview() async {
+    if (_isPreparingPreview || _isGeneratingPdf || _isScanning) return;
+    final scannedPages = ref.read(scanSessionProvider);
+    if (scannedPages.isEmpty) return;
+
+    final localizations = AppLocalizations.of(context);
+
+    setState(() {
+      _isPreparingPreview = true;
+    });
+
+    Stopwatch? stopwatch;
+    if (kDebugMode) {
+      stopwatch = Stopwatch()..start();
+      debugPrint('[ScanTiming] Preview PDF generation initiated');
+    }
+
+    try {
+      if (_previewPdfPath != null) {
+        try {
+          final oldFile = File(_previewPdfPath!);
+          if (oldFile.existsSync()) {
+            oldFile.deleteSync();
+          }
+        } catch (_) {}
+        _previewPdfPath = null;
+      }
+
+      final imagePaths = scannedPages.map((f) => f.path).toList();
+      final useCase = ref.read(scanDocumentUseCaseProvider);
+      
+      final tempPreviewPath = await useCase.generateTempPdf(
+        imagePaths,
+        qualityProfile: DocumentQualityProfile.preview,
+      );
+      _previewPdfPath = tempPreviewPath;
+
+      if (kDebugMode && stopwatch != null) {
+        debugPrint('[ScanTiming] Preview PDF generated successfully in: ${stopwatch.elapsedMilliseconds} ms');
+      }
+
+      if (!mounted) return;
+
+      context.push(
+        AppRouter.pdfViewerPath,
+        extra: {
+          'filePath': tempPreviewPath,
+          'title': localizations.preview,
+          'documentId': null,
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar(e.toString());
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPreparingPreview = false;
+        });
+      }
+    }
+  }
+
   Future<void> _finishPdf() async {
     final scannedPages = ref.read(scanSessionProvider);
     if (scannedPages.isEmpty) return;
@@ -185,30 +323,55 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
       _isGeneratingPdf = true;
     });
 
+    Stopwatch? stopwatch;
+    if (kDebugMode) {
+      stopwatch = Stopwatch()..start();
+      debugPrint('[ScanTiming] Final PDF generation initiated');
+    }
+
     String? tempPdfPath;
     try {
       final imagePaths = scannedPages.map((f) => f.path).toList();
       final useCase = ref.read(scanDocumentUseCaseProvider);
       
-      // 1. Generate the PDF inside temporary file storage
-      tempPdfPath = await useCase.generateTempPdf(imagePaths);
-
-      if (!mounted) {
-        try {
-          File(tempPdfPath).deleteSync();
-        } catch (_) {}
-        return;
-      }
-      // 2. Redirect to PDF Pre-save preview screen
-      context.push(
-        AppRouter.pdfPreSaveViewerPath,
-        extra: {
-          'tempPdfPath': tempPdfPath,
-          'documentName': docName,
-        },
+      // 1. Generate the final PDF inside temporary file storage
+      tempPdfPath = await useCase.generateTempPdf(
+        imagePaths,
+        qualityProfile: DocumentQualityProfile.finalSave,
       );
+
+      // 2. Finalize/save the document directly
+      await useCase.saveFinalDocument(
+        tempPdfPath,
+        docName,
+        imagePaths,
+      );
+
+      if (kDebugMode && stopwatch != null) {
+        debugPrint('[ScanTiming] Final PDF generated and saved successfully in: ${stopwatch.elapsedMilliseconds} ms');
+      }
+
+      // Clear the scan session after successfully saving
+      ref.read(scanSessionProvider.notifier).clearSession();
+
+      // Clean up temporary preview PDF if exists
+      if (_previewPdfPath != null) {
+        try {
+          final f = File(_previewPdfPath!);
+          if (f.existsSync()) {
+            f.deleteSync();
+          }
+        } catch (_) {}
+        _previewPdfPath = null;
+      }
+
+      if (mounted) {
+        context.go(AppRouter.homePath);
+      }
     } catch (e) {
-      _showSnackBar(e.toString());
+      if (mounted) {
+        _showSnackBar(e.toString());
+      }
       if (tempPdfPath != null) {
         try {
           final file = File(tempPdfPath);
@@ -284,13 +447,13 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
                 // Replace page action
                 IconButton(
                   icon: const Icon(Icons.edit_outlined, color: Colors.white, size: 20),
-                  onPressed: () => _replacePage(index),
+                  onPressed: (!_isScanning && !_isGeneratingPdf && !_isPreparingPreview) ? () => _replacePage(index) : null,
                   tooltip: localizations.importScan,
                 ),
                 // Remove page action
                 IconButton(
                   icon: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 20),
-                  onPressed: () => ref.read(scanSessionProvider.notifier).removePage(index),
+                  onPressed: (!_isScanning && !_isGeneratingPdf && !_isPreparingPreview) ? () => ref.read(scanSessionProvider.notifier).removePage(index) : null,
                   tooltip: localizations.cancelButton,
                 ),
               ],
@@ -306,11 +469,13 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
     final scannedPages = ref.watch(scanSessionProvider);
     final localizations = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return PopScope(
-      canPop: scannedPages.isEmpty,
+      canPop: scannedPages.isEmpty && !_isGeneratingPdf && !_isScanning && !_isPreparingPreview,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        if (_isGeneratingPdf || _isScanning || _isPreparingPreview) return;
         await _handleCancel();
       },
       child: Stack(
@@ -319,7 +484,7 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
             appBar: AppBar(
               leading: IconButton(
                 icon: const Icon(Icons.close_rounded),
-                onPressed: _handleCancel,
+                onPressed: (!_isGeneratingPdf && !_isScanning && !_isPreparingPreview) ? _handleCancel : null,
                 tooltip: localizations.cancelButton,
               ),
               title: Column(
@@ -327,13 +492,21 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
                 children: [
                   Text(localizations.labelScannedPages, style: const TextStyle(fontWeight: FontWeight.bold)),
                   Text(
-                    '${scannedPages.length} Pages', // Page counter
+                    '${scannedPages.length} Pages',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
+              actions: [
+                if (scannedPages.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Icons.visibility_rounded),
+                    onPressed: (!_isGeneratingPdf && !_isScanning && !_isPreparingPreview) ? _showPreview : null,
+                    tooltip: localizations.preview,
+                  ),
+              ],
             ),
             body: SafeArea(
               child: Column(
@@ -353,7 +526,6 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
                             itemBuilder: (context, index) {
                               final file = scannedPages[index];
                               
-                              // Wrap each grid element in DragTarget and LongPressDraggable to enable drag-and-drop reordering
                               return DragTarget<int>(
                                 builder: (context, candidateData, rejectedData) {
                                   return LongPressDraggable<int>(
@@ -381,7 +553,7 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
                                     child: _buildGridCard(file, index, theme, localizations),
                                   );
                                 },
-                                onWillAcceptWithDetails: (details) => details.data != index,
+                                onWillAcceptWithDetails: (details) => !(_isGeneratingPdf || _isScanning || _isPreparingPreview) && details.data != index,
                                 onAcceptWithDetails: (details) {
                                   ref.read(scanSessionProvider.notifier).reorderPages(details.data, index);
                                 },
@@ -389,7 +561,6 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
                             },
                           ),
                   ),
-                  // Floating-style bottom bar container
                   Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: Row(
@@ -398,7 +569,7 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
                           child: SizedBox(
                             height: 52,
                             child: OutlinedButton.icon(
-                              onPressed: _addPage,
+                              onPressed: (!_isGeneratingPdf && !_isScanning && !_isPreparingPreview) ? _addPage : null,
                               icon: const Icon(Icons.add_photo_alternate_outlined),
                               label: Text(localizations.btnAddPage, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                             ),
@@ -409,7 +580,7 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
                           child: SizedBox(
                             height: 52,
                             child: FilledButton.icon(
-                              onPressed: scannedPages.isNotEmpty ? _finishPdf : null,
+                              onPressed: (scannedPages.isNotEmpty && !_isGeneratingPdf && !_isScanning && !_isPreparingPreview) ? _finishPdf : null,
                               icon: const Icon(Icons.check_circle_outline_rounded),
                               label: Text(localizations.btnFinish, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                             ),
@@ -430,18 +601,92 @@ class _ScanSessionPageState extends ConsumerState<ScanSessionPage> {
           if (_isGeneratingPdf)
             Center(
               child: Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 4,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
                 child: Padding(
-                  padding: const EdgeInsets.all(28.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const CircularProgressIndicator(),
                       const SizedBox(height: 16),
                       Text(
-                        localizations.generatingPdfLabel,
-                        style: theme.textTheme.titleMedium?.copyWith(
+                        localizations.preparingDocument,
+                        style: TextStyle(
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        localizations.pleaseWait,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDark ? Colors.grey : Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          if (_isScanning)
+            ModalBarrier(
+              dismissible: false,
+              color: Colors.black.withValues(alpha: 0.5),
+            ),
+          if (_isScanning)
+            Center(
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text(
+                        localizations.processingScan,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          if (_isPreparingPreview)
+            ModalBarrier(
+              dismissible: false,
+              color: Colors.black.withValues(alpha: 0.5),
+            ),
+          if (_isPreparingPreview)
+            Center(
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text(
+                        localizations.preparingPreview,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black,
                         ),
                       ),
                     ],

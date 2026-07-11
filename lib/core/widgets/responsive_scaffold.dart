@@ -9,6 +9,8 @@ class ResponsiveScaffold extends StatelessWidget {
   final String currentPath;
   final Widget? floatingActionButton;
   final List<Widget>? actions;
+  final Widget? leading;
+  final bool automaticallyImplyLeading;
 
   const ResponsiveScaffold({
     required this.body,
@@ -16,6 +18,8 @@ class ResponsiveScaffold extends StatelessWidget {
     this.title,
     this.floatingActionButton,
     this.actions,
+    this.leading,
+    this.automaticallyImplyLeading = true,
     super.key,
   });
 
@@ -49,6 +53,7 @@ class ResponsiveScaffold extends StatelessWidget {
                   appBar: title != null
                       ? AppBar(
                           title: title,
+                          leading: leading,
                           automaticallyImplyLeading: false, // No hamburger menu needed on tablet
                           backgroundColor: appBarColor,
                           elevation: 0,
@@ -68,12 +73,14 @@ class ResponsiveScaffold extends StatelessWidget {
       return Scaffold(
         appBar: AppBar(
           title: title,
+          leading: leading,
+          automaticallyImplyLeading: leading != null ? false : automaticallyImplyLeading,
           backgroundColor: appBarColor,
           elevation: 0,
           iconTheme: IconThemeData(color: iconColor),
           actions: actions,
         ),
-        drawer: AppNavigationDrawer(
+        drawer: leading != null ? null : AppNavigationDrawer(
           currentPath: currentPath,
           isPermanent: false,
         ),

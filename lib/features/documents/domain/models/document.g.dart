@@ -18,6 +18,10 @@ _$DocumentImpl _$$DocumentImplFromJson(Map<String, dynamic> json) =>
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       lastViewedPage: (json['lastViewedPage'] as num?)?.toInt() ?? 1,
+      isDeleted: json['isDeleted'] as bool? ?? false,
+      deletedAt: json['deletedAt'] == null
+          ? null
+          : DateTime.parse(json['deletedAt'] as String),
     );
 
 Map<String, dynamic> _$$DocumentImplToJson(_$DocumentImpl instance) =>
@@ -32,6 +36,8 @@ Map<String, dynamic> _$$DocumentImplToJson(_$DocumentImpl instance) =>
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
       'lastViewedPage': instance.lastViewedPage,
+      'isDeleted': instance.isDeleted,
+      'deletedAt': instance.deletedAt?.toIso8601String(),
     };
 
 const _$DocumentTypeEnumMap = {
